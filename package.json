@@ -1,0 +1,29 @@
+{
+  "name": "organic-webdata",
+  "version": "0.0.0",
+  "main": "webdata.js",
+  "scripts": {
+    "test": "jasmine-node ./tests/"
+  },
+  "dependencies": {
+    "organic": "latest",
+    "socket.io": "latest",
+    "backbone": "latest",
+    "underscore": "latest",
+    "socket.io-client": "latest",
+    "mongojs": "latest",
+    "express": "latest",
+    "formidable": "latest",
+    "i18next": "latest",
+    "jade": "latest",
+    "browserify": "latest",
+    "uglify-js": "latest",
+    "domready": "latest",
+    "jquery-browserify": "*"
+  },
+  "devDependencies": {
+    "jasmine-node": "latest",
+    "request": "latest"
+  },
+  "license": "MIT"
+}

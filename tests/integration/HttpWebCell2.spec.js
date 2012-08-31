@@ -1,0 +1,60 @@
+var request = require("request");
+var Cell = require("../../WebCell");
+var Chemical = require("organic").Chemical;
+
+describe("ClientPage", function(){
+  
+  var cell;
+  var dnaData = {
+    "membrane":{
+      "HttpServer": {
+        "source": "membrane/HttpServer",
+        "port": 8078,
+        "staticFolder": "/tests/data/client/public",
+        "localesFolder": "/tests/data/client/public/locales",
+        "routes": {
+          "*": {
+            "chain": [
+              "PageCode",
+              "PageRender",
+              "HttpServer"
+            ],
+            "page": "/index",
+            "code": "/index.js"
+          }
+        },
+      }
+    },
+    "plasma": {
+      "PageCode": {
+        "source": "plasma/PageCode",
+        "root": "/tests/data/client",
+        "useCache": false
+      },
+      "PageRender": {
+        "source": "plasma/PageRender",
+        "root": "/tests/data/client"
+      }
+    }
+  };
+
+  it("should start", function(next){
+    cell = new Cell(dnaData);
+    cell.plasma.once("HttpServer", function(chemical){
+      expect(chemical).toBeDefined();
+      next();
+    });
+  });
+
+  it("should return rendered page as response on request", function(next){
+    request("http://localhost:"+dnaData.membrane.HttpServer.port+"/", function(err, res, body){
+      expect(err).toBe(null);
+      expect(body).toContain("index");
+      expect(body).toContain("<div class");
+      expect(body).toContain("container");
+      cell.kill();
+      next();
+    }); 
+  });
+
+});

@@ -1,0 +1,50 @@
+{
+  "MongoStore": {
+    "source": "membrane/MongoStore",
+    "dbname": "database-name"
+  },
+  "WebSocketServer": {
+    "source": "membrane/WebSocketServer",
+    "port": 8081,
+    "logLevel": 1,
+    "events": {
+      "MongoStore": {
+        "chain": ["MongoStore", "RealtimeMongoResource", "WebSocketServer"]
+      },
+      "RealtimeMongoResourceAdmin": {
+        "chain": ["RealtimeMongoResource", "WebSocketServer"]
+      }
+    }
+  },
+  "HttpServer": {
+    "source": "membrane/HttpServer",
+    "port": 8000,
+    "routes": {
+      "/code.js": {
+        "chain": [
+          "LogicAction",
+          "PageCode",
+          "HttpServer"
+        ],
+        "action": "/path/to/action",
+        "code": "/index.js",
+        "content-type": "text/javascript"
+      },
+      "/": {
+        "chain": [
+          "PageRender",
+          "HttpServer"
+        ],
+        "page": "/index"
+      }
+    },
+    "notfoundRoute": {
+      "chain": [
+        "PageRender",
+        "HttpServer"
+      ],
+      "page": "/404",
+      "statusCode": 404
+    }
+  }
+}
