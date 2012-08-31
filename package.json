@@ -1,7 +1,7 @@
 {
-  "name": "organic-webdata",
+  "name": "organic-webcell",
   "version": "0.0.0",
-  "main": "webdata.js",
+  "main": "WebCell.js",
   "scripts": {
     "test": "jasmine-node ./tests/"
   },

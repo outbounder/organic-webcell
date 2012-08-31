@@ -51,10 +51,10 @@ module.exports.prototype.configureHttpServer = function(){
       });
 
   if(this.config.uploadFolder)
-    this.app.use(form.call(this, {uploadDir: this.config.uploadFolder}));
+    this.app.use(form({uploadDir: this.config.uploadFolder}));
 
   if(this.config.localesFolder)
-    this.app.use(i18next.call(this, {localesFolder: this.config.localesFolder}));
+    i18next(this.app, {localesFolder: this.config.localesFolder});
 
   // rest of the middleware
   this.app.use(express.errorHandler({ dumpExceptions: true }));
