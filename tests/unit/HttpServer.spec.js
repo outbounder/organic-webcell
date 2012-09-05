@@ -9,8 +9,6 @@ describe("HttpServer", function(){
   var httpServer;
   var serverConfig = {
     "port": 8080,
-    "staticFolder": "/tests/data/",
-    "localesFolder": "/tests/data/",
     "routes": {
       "/": {
         "chain": [
@@ -70,18 +68,11 @@ describe("HttpServer", function(){
   it("should send response on HttpServer chemical", function(next){
     mockResponse.send = function(data) {
       expect(data).toBe("responseData");
-      next();
-    }
-    plasma.emit({ type: "HttpServer", traceId: 0, data: "responseData" });
-  });
-
-  it("should serve files from public folder", function(next){
-    request("http://127.0.0.1:8080/file.txt", function(err, res, body){
-      expect(body).toBe("content");
       if(httpServer)
         httpServer.close();
       next();
-    });
+    }
+    plasma.emit({ type: "HttpServer", traceId: 0, data: "responseData" });
   });
 
 });

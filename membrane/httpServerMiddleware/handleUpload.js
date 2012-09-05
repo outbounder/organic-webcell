@@ -50,11 +50,13 @@ var formidable = require('formidable');
  * @api public
  */
 
-module.exports = function(options){
-  options = options || {};
+module.exports = function(config, httpServer){
+  options = config || {};
+  if(options.uploadDir && options.uploadDir.indexOf("/") !== 0)
+    options.uploadDir = process.cwd()+"/"+options.uploadDir;
   return function(req, res, next){
     if (formRequest(req)) {
-      var form = req.form = new formidable.IncomingForm;
+      var form = req.form = new formidable.IncomingForm();
       merge(form, options);
       form.parse(req, function(err, fields, files) {
         req.body = fields;

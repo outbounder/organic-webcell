@@ -19,30 +19,25 @@
   "HttpServer": {
     "source": "membrane/HttpServer",
     "port": 8000,
+    "middlware": [
+      "membrane/httpServerMiddleware/handleRequest",
+      { "source": "membrane/httpServerMiddleware/handleUpload", "destination": "uploads/" },
+      { "source": "membrane/httpServerMiddleware/handleI18N", "source": "locales/" }
+    ],
     "routes": {
       "/code.js": {
-        "chain": [
-          "LogicAction",
-          "PageCode",
-          "HttpServer"
-        ],
+        "chain": [ "LogicAction", "PageCode", "HttpServer" ],
         "action": "/path/to/action",
         "code": "/index.js",
         "content-type": "text/javascript"
       },
       "/": {
-        "chain": [
-          "PageRender",
-          "HttpServer"
-        ],
+        "chain": [ "PageRender", "HttpServer" ],
         "page": "/index"
       }
     },
     "notfoundRoute": {
-      "chain": [
-        "PageRender",
-        "HttpServer"
-      ],
+      "chain": [ "PageRender", "HttpServer" ],
       "page": "/404",
       "statusCode": 404
     }

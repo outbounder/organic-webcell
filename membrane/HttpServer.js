@@ -2,8 +2,6 @@ var util = require("util");
 var express = require('express');
 var _ = require("underscore");
 var fs = require("fs");
-var form = require("./httpServerMiddleware/connect-form");
-var i18next = require("./httpServerMiddleware/i18next");
 
 var Chemical = require("organic").Chemical;
 var Organel = require("organic").Organel;
@@ -18,8 +16,7 @@ module.exports = function HttpServer(plasma, config){
   this.config = config;
   var self = this;
 
-  this.configureHttpServer();
-
+  this.mountMiddleware();
   this.mountHttpRoutes();
   
   this.on("HttpServer", this.handleIncomingResponse);
@@ -36,28 +33,20 @@ module.exports = function HttpServer(plasma, config){
 
 util.inherits(module.exports, Organel);
 
-module.exports.prototype.configureHttpServer = function(){
-
-  this.app.use(express.cookieParser());
-  this.app.use(express.bodyParser());
-  this.app.use(express.methodOverride());
-
-  if(this.config.staticFolder)
-    if(typeof this.config.staticFolder == "string")
-      this.app.use(express.static(process.cwd()+this.config.staticFolder));
-    else
-      this.config.staticFolder.forEach(function(folder){
-        this.app.use(express.static(process.cwd()+folder));
-      });
-
-  if(this.config.uploadFolder)
-    this.app.use(form({uploadDir: this.config.uploadFolder}));
-
-  if(this.config.localesFolder)
-    i18next(this.app, {localesFolder: this.config.localesFolder});
-
-  // rest of the middleware
-  this.app.use(express.errorHandler({ dumpExceptions: true }));
+module.exports.prototype.mountMiddleware = function(){
+  var self = this;
+  _.each(this.config.middleware, function(middleware){
+    var middlewareSource = middleware.source || middleware;
+    var middlewareConfig = middleware.source?middleware:{};
+    if(middlewareSource.indexOf("/") !== 0)
+      middlewareSource = process.cwd()+"/"+middlewareSource;
+    
+    if(self.config.logMiddleware)
+      console.log("middleware: ",middlewareSource, JSON.stringify(middlewareConfig).yellow);
+    var middlewareFunc = require(middlewareSource)(middlewareConfig, self);
+    if(middlewareFunc)
+      self.app.use(middlewareFunc);
+  });
 }
 
 module.exports.prototype.mountHttpRoutes = function(){
