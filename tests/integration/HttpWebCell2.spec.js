@@ -8,7 +8,7 @@ describe("ClientPage", function(){
   var dnaData = {
     "membrane":{
       "HttpServer": {
-        "source": "membrane/HttpServer",
+        "source": "membrane/ExpressHttpServer",
         "port": 8078,
         "staticFolder": "/tests/data/client/public",
         "localesFolder": "/tests/data/client/public/locales",

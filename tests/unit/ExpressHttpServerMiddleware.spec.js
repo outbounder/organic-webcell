@@ -1,4 +1,4 @@
-var HttpServer = require("../../membrane/HttpServer");
+var HttpServer = require("../../membrane/ExpressHttpServer");
 var Plasma = require("organic").Plasma;
 var request = require("request");
 var path = require("path");
@@ -13,12 +13,12 @@ describe("HttpServer", function(){
   var serverConfig = {
     "port": 8090,
     "middleware": [
-      "membrane/httpServerMiddleware/cookieParser",
-      "membrane/httpServerMiddleware/allowCrossDomain",
-      { "source": "membrane/httpServerMiddleware/handleMongoSession", "dbname": "test-webcell", "cookie_secret": "test" },
-      { "source": "membrane/httpServerMiddleware/bodyParser", "uploadDir": "tests/data/" },
-      { "source": "membrane/httpServerMiddleware/handleI18Next", "localesDir": "tests/data/" },
-      { "source": "membrane/httpServerMiddleware/staticFolder", "staticDir": "tests/data/" }
+      "membrane/expressMiddleware/cookieParser",
+      "membrane/expressMiddleware/allowCrossDomain",
+      { "source": "membrane/expressMiddleware/handleMongoSession", "dbname": "test-webcell", "cookie_secret": "test" },
+      { "source": "membrane/expressMiddleware/bodyParser", "uploadDir": "tests/data/" },
+      { "source": "membrane/expressMiddleware/handleI18Next", "localesDir": "tests/data/" },
+      { "source": "membrane/expressMiddleware/staticFolder", "staticDir": "tests/data/" }
     ],
     "routes": {
       "/upload": {

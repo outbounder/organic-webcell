@@ -1,4 +1,4 @@
-var HttpServer = require("../../membrane/HttpServer");
+var HttpServer = require("../../membrane/ExpressHttpServer");
 var Plasma = require("organic").Plasma;
 var request = require("request");
 

@@ -17,12 +17,12 @@
     }
   },
   "HttpServer": {
-    "source": "membrane/HttpServer",
+    "source": "membrane/ExpressHttpServer",
     "port": 8000,
     "middlware": [
-      "membrane/httpServerMiddleware/handleRequest",
-      { "source": "membrane/httpServerMiddleware/handleUpload", "destination": "uploads/" },
-      { "source": "membrane/httpServerMiddleware/handleI18N", "source": "locales/" }
+      "membrane/expressMiddleware/handleRequest",
+      { "source": "membrane/expressMiddleware/handleUpload", "destination": "uploads/" },
+      { "source": "membrane/expressMiddleware/handleI18N", "source": "locales/" }
     ],
     "routes": {
       "/code.js": {

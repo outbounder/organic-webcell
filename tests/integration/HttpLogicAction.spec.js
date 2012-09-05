@@ -1,6 +1,6 @@
 var Chemical = require("organic").Chemical;
 var Plasma = require("organic").Plasma;
-var HttpServer = require("../../membrane/HttpServer");
+var HttpServer = require("../../membrane/ExpressHttpServer");
 var LogicAction = require("../../plasma/LogicAction");
 var request = require("request");
 
