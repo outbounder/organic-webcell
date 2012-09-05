@@ -13,13 +13,18 @@ describe("HttpServer", function(){
   var serverConfig = {
     "port": 8090,
     "middleware": [
-      "membrane/httpServerMiddleware/handleRequest",
-      { "source": "membrane/httpServerMiddleware/handleUpload", "uploadDir": "tests/data/" },
+      "membrane/httpServerMiddleware/cookieParser",
+      "membrane/httpServerMiddleware/allowCrossDomain",
+      { "source": "membrane/httpServerMiddleware/handleMongoSession", "dbname": "test-webcell", "cookie_secret": "test" },
+      { "source": "membrane/httpServerMiddleware/bodyParser", "uploadDir": "tests/data/" },
       { "source": "membrane/httpServerMiddleware/handleI18Next", "localesDir": "tests/data/" },
       { "source": "membrane/httpServerMiddleware/staticFolder", "staticDir": "tests/data/" }
     ],
     "routes": {
       "/upload": {
+        chain: ["EchoIncomingHttpRequest", "HttpServer"]
+      },
+      "/post": {
         chain: ["EchoIncomingHttpRequest", "HttpServer"]
       }
     }
@@ -46,6 +51,16 @@ describe("HttpServer", function(){
     expect(httpServer).toBeDefined();
   });
 
+  it("should receive post requests", function(next){
+    request.post("http://127.0.0.1:"+serverConfig.port+"/post", {form:{myData: "value"}}, function(err, res, body){
+      expect(body).toBeDefined();
+      body = JSON.parse(body);
+      expect(body.body).toBeDefined();
+      expect(body.body.myData).toBe("value");
+      next();
+    });
+  });
+
   it("should serve files from public folder", function(next){
     request("http://127.0.0.1:"+serverConfig.port+"/file.txt", function(err, res, body){
       expect(body).toBe("content");
@@ -61,6 +76,8 @@ describe("HttpServer", function(){
       expect(body.body.my_field).toBeDefined();
       expect(body.body.my_buffer).toBeDefined();
       expect(body.files.my_file).toBeDefined();
+      expect(body.files.my_file.path).toContain("tests/data/");
+      fs.unlink(body.files.my_file.path);
       httpServer.close();
       next();
     });
