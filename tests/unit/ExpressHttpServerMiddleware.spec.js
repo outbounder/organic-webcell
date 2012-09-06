@@ -40,6 +40,10 @@ describe("HttpServer", function(){
     plasma.emit(chemical);
   });
 
+  plasma.on(Error, function(e){
+    console.log(e);
+  });
+
   it("should emit HttpServer chemical in plasma once ready", function(next){
 
     plasma.once("HttpServer", function(chemical){

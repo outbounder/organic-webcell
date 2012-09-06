@@ -10,7 +10,7 @@ module.exports = function ExpressHttpServer(plasma, config){
   Organel.call(this, plasma);
 
   // TODO get rid of express and use pure HTTPServer from node for perfomance...
-  var app = this.app = express();
+  var app = this.app = express.createServer();
   this.responseClients = [];
   this.count = 0;
   this.config = config;
@@ -19,6 +19,7 @@ module.exports = function ExpressHttpServer(plasma, config){
   this.mountMiddleware();
   this.app.use(this.app.router);
   this.mountHttpRoutes();
+
   
   this.on("HttpServer", this.handleIncomingResponse);
   this.once("kill", this.close);
@@ -87,7 +88,7 @@ module.exports.prototype.handleIncomingResponse =  function(chemical){
     var client = this.responseClients[i];
     if(chemical.traceId == client.traceId) {
       if(chemical['content-type'])
-        client.res.set('Content-type', chemical['content-type']);
+        client.res.header('Content-type', chemical['content-type']);
       if(chemical.data instanceof Buffer) {
         client.res.write(chemical.data);
         client.res.end();
