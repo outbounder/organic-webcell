@@ -37,6 +37,7 @@ util.inherits(module.exports, Organel);
 module.exports.prototype.mountMiddleware = function(){
   var self = this;
   _.each(this.config.middleware, function(middleware){
+    
     var middlewareSource = middleware.source || middleware;
     var middlewareConfig = middleware.source?middleware:{};
     if(middlewareSource.indexOf("/") !== 0)

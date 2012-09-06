@@ -62,9 +62,12 @@ describe("HttpServer", function(){
   });
 
   it("should serve files from public folder", function(next){
-    request("http://127.0.0.1:"+serverConfig.port+"/file.txt", function(err, res, body){
-      expect(body).toBe("content");
-      next();
+    request("http://127.0.0.1:"+serverConfig.port+"/api/MockHandler.js", function(err, res, body){
+      expect(body).toContain("callback");
+      request("http://127.0.0.1:"+serverConfig.port+"/file.txt", function(err, res, body){
+        expect(body).toBe("content");
+        next();
+      });
     });
   });
 
