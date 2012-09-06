@@ -20,9 +20,12 @@
     "source": "membrane/ExpressHttpServer",
     "port": 8000,
     "middlware": [
-      "membrane/expressMiddleware/handleRequest",
-      { "source": "membrane/expressMiddleware/handleUpload", "destination": "uploads/" },
-      { "source": "membrane/expressMiddleware/handleI18N", "source": "locales/" }
+      "membrane/expressMiddleware/cookieParser",
+      "membrane/expressMiddleware/allowCrossDomain",
+      { "source": "membrane/expressMiddleware/handleMongoSession", "dbname": "test-webcell", "cookie_secret": "test" },
+      { "source": "membrane/expressMiddleware/bodyParser", "uploadDir": "tests/data/" },
+      { "source": "membrane/expressMiddleware/handleI18Next", "localesDir": "tests/data/" },
+      { "source": "membrane/expressMiddleware/staticFolder", "staticDir": "tests/data/" }
     ],
     "routes": {
       "/code.js": {

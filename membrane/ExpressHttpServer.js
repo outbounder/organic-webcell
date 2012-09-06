@@ -17,6 +17,7 @@ module.exports = function ExpressHttpServer(plasma, config){
   var self = this;
 
   this.mountMiddleware();
+  this.app.use(this.app.router);
   this.mountHttpRoutes();
   
   this.on("HttpServer", this.handleIncomingResponse);
