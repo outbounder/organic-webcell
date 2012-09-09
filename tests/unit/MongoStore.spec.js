@@ -20,7 +20,7 @@ describe("MongoStore", function(){
   });
 
   it("should be able to save document", function(next){
-    plasma.once("result", function(c){
+    plasma.once("result1", function(c){
       expect(c.data).toBeDefined();
       expect(c.data._id).toBeDefined();
       expect(c.data.title).toBe(sampleDoc.title);
@@ -31,17 +31,17 @@ describe("MongoStore", function(){
 
     plasma.emit(new Chemical({
       type:"MongoStore", 
-      chain: ["result"],
+      chain: ["result1"],
       data: {
-        type: "create",
+        method: "POST",
         collection: "test",
-        value: sampleDoc
+        body: sampleDoc
       }
     }));
   });
 
   it("should be able to get document by id", function(next){
-    plasma.once("result", function(c){
+    plasma.once("result2", function(c){
       expect(c.data).toBeDefined();
       expect(c.data._id.toString()).toBe(sampleDoc._id.toString());
       expect(c.data.title).toBe(sampleDoc.title);
@@ -52,9 +52,9 @@ describe("MongoStore", function(){
 
     plasma.emit(new Chemical({
       type:"MongoStore", 
-      chain: ["result"],
+      chain: ["result2"],
       data: {
-        type: "read",
+        method: "GET",
         collection: "test",
         id: sampleDoc._id.toString() // needs plain json
       }
@@ -63,7 +63,7 @@ describe("MongoStore", function(){
 
   it("should be able to find documents by pattern", function(next){
 
-    plasma.once("result", function(c){
+    plasma.once("result3", function(c){
       expect(c.data).toBeDefined();
       expect(c.data.length).toBe(2);
       c.data.forEach(function(item){
@@ -76,9 +76,9 @@ describe("MongoStore", function(){
     plasma.once("noop", function(){
       plasma.emit(new Chemical({
         type:"MongoStore", 
-        chain: ["result"],
+        chain: ["result3"],
         data: {
-          type: "read",
+          method: "GET",
           collection: "test",
           pattern: { "value": sampleDoc.value }
         }
@@ -89,9 +89,9 @@ describe("MongoStore", function(){
       type:"MongoStore", 
       chain: ["noop"],
       data: {
-        type: "create",
+        method: "POST",
         collection: "test",
-        value: {
+        body: {
           title: "string2",
           value: sampleDoc.value
         }
@@ -101,7 +101,7 @@ describe("MongoStore", function(){
 
   it("should be able to update document by id", function(next){
 
-    plasma.once("result", function(c){
+    plasma.once("result4", function(c){
       expect(c.data).toBeDefined();
       expect(c.data).toBe(1);
       next();
@@ -109,12 +109,12 @@ describe("MongoStore", function(){
 
     plasma.emit(new Chemical({
       type:"MongoStore", 
-      chain: ["result"],
+      chain: ["result4"],
       data: {
-        type: "update",
+        method: "PUT",
         collection: "test",
         id: sampleDoc._id.toString(), // needs plain json
-        value: {
+        body: {
           $set: {
             title: "string2"
           }
@@ -125,7 +125,7 @@ describe("MongoStore", function(){
 
   it("should be able to remove document by id", function(next){
 
-    plasma.once("result", function(c){
+    plasma.once("result5", function(c){
       expect(c.data).toBeDefined();
       expect(c.data).toBe(1);
       next();
@@ -133,9 +133,9 @@ describe("MongoStore", function(){
 
     plasma.emit(new Chemical({
       type:"MongoStore", 
-      chain: ["result"],
+      chain: ["result5"],
       data: {
-        type: "delete",
+        method: "DELETE",
         collection: "test",
         id: sampleDoc._id.toString() // needs plain json
       }

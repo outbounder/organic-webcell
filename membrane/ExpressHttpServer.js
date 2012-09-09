@@ -9,7 +9,6 @@ var Organel = require("organic").Organel;
 module.exports = function ExpressHttpServer(plasma, config){
   Organel.call(this, plasma);
 
-  // TODO get rid of express and use pure HTTPServer from node for perfomance...
   var app = this.app = express.createServer();
   this.responseClients = [];
   this.count = 0;

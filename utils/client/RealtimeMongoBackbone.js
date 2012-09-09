@@ -2,13 +2,13 @@ var io = require("socket.io-client");
 var _ = require("underscore");
 
 var handleNotifications = function(inputData, modelInstances, collectionInstances){
-  if(inputData.type == "create") {
+  if(inputData.method == "POST") {
     for(var i = 0; i<collectionInstances.length; i++) {
       var collection = collectionInstances[i];
       if(collection.collectionName == inputData.collection) {
 
         // register newly added models for updates
-        var m = new collection.model(inputData.value);
+        var m = new collection.model(inputData.body);
         modelInstances.push(m);
 
         // add to collection
@@ -21,9 +21,9 @@ var handleNotifications = function(inputData, modelInstances, collectionInstance
   for(var i = 0; i<modelInstances.length; i++) {
     var model = modelInstances[i];
     if(model.id == inputData.id) {
-      if(inputData.type == "update")
-        model.set(inputData.value["$set"]);
-      if(inputData.type == "delete")
+      if(inputData.method == "PUT")
+        model.set(inputData.body["$set"]);
+      if(inputData.method == "DELETE")
         model.destroy();
     }
   }
@@ -85,9 +85,9 @@ module.exports.attach = function(Backbone, realtimeOptions){
     switch(method) {
       case "create": 
         connection.emit(realtimeOptions.storeMessage, {
-          type: "create",
           collection: model.collectionName,
-          value: model.toJSON()
+          method: "POST",
+          body: model.toJSON()
         }, function(err, data){
           if(err) {
             options.error(err);
@@ -99,10 +99,10 @@ module.exports.attach = function(Backbone, realtimeOptions){
       break;
       case "read":
         connection.emit(realtimeOptions.storeMessage, {
-          type: "read",
           collection: model.collectionName,
+          pattern: options.pattern,
           id: model.id,
-          pattern: options.pattern
+          method: "GET"
         }, function(err, data){
           if(err) {
             options.error(err);
@@ -123,19 +123,18 @@ module.exports.attach = function(Backbone, realtimeOptions){
         // get JSON representation
         var updateData = model.toJSON();
         
-        // Do not why, but backbone always adds _id, which mongo doesn't likes on updates...
-        delete updateData._id;
+        delete updateData._id; // XXX
 
         // in case it is updating via model
         if(model.id)
           updateData = {$set: updateData};
 
         connection.emit(realtimeOptions.storeMessage, {
-          type: "update",
           collection: model.collectionName,
+          pattern: options.pattern,
           id: model.id,
-          patten: options.pattern,
-          value: updateData
+          method: "PUT",
+          body: updateData
         }, function(err, data){
           if(err) 
             options.error(err);
@@ -145,10 +144,10 @@ module.exports.attach = function(Backbone, realtimeOptions){
       break;
       case "delete":
         connection.emit(realtimeOptions.storeMessage, {
-          type: "delete",
           collection: model.collectionName,
+          pattern: options.pattern,
           id: model.id,
-          patten: options.pattern
+          method: "DELETE"
         }, function(err, data){
           if(err) {
             options.error(err);
@@ -178,16 +177,17 @@ module.exports.attach = function(Backbone, realtimeOptions){
       });
     },
     disableRealtime: function(callback){
+      this.realtime = false;
       var connection = this.connection || realtime.connection;
       connection.emit(realtimeOptions.realtimeManagementMessage, {
-        type: "unsubscribe",
+        method: "UNSUBSCRIBE",
         collection: this.collectionName,
         id: this.id
       }, callback);
       for(var i = 0; i<realtime.modelInstances.length; i++) {
         if(realtime.modelInstances[i] === this) {
           realtime.modelInstances.splice(i, 1);
-          return;
+          i -= 1;
         }
       }
     }
@@ -195,16 +195,23 @@ module.exports.attach = function(Backbone, realtimeOptions){
 
   Backbone.RealtimeCollection = Backbone.Collection.extend({
     realtime: true,
+    useConnection: function(value, ownHandler){
+      this.connection = value;
+      this.connection.on(realtimeOptions.realtimeNotificationMessage, ownHandler || function(data){
+        handleNotifications(data, realtime.modelInstances, realtime.collectionInstances);
+      });
+    },
     disableRealtime: function(callback){
+      this.realtime = false;
       var connection = this.connection || realtime.connection;
       connection.emit(realtimeOptions.realtimeManagementMessage, {
-        type: "unsubscribe",
+        method: "UNSUBSCRIBE",
         collection: this.collectionName
       }, callback);
       for(var i = 0; i<realtime.collectionInstances.length; i++) {
         if(realtime.collectionInstances[i] === this) {
-          realtime.modelInstances.splice(i, 1);
-          return;
+          realtime.collectionInstances.splice(i, 1);
+          i -= 1;
         }
       }
     }

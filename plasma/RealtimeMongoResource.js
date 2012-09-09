@@ -15,15 +15,16 @@ module.exports = function RealtimeMongoResource(plasma, config){
     chemical.type = chemical.chain.shift();
 
     var inputData = chemical.inputData;
-    if(inputData.type == "create" || inputData.type == "read") {
+    if(inputData.method == "POST" || inputData.method == "GET") {
       this.addSubscriber(chemical);
-      if(inputData.type == "create")
+      if(inputData.method == "POST")
         this.notifyAllCollectionSubscribers(chemical);
     } else
-    if(inputData.type == "update" || inputData.type == "delete") {
+    if(inputData.method == "PUT" || inputData.method == "DELETE") {
+
       this.notifyAllModuleSubscribers(chemical);
       this.notifyAllCollectionSubscribers(chemical);
-      if(inputData.type == "delete") {
+      if(inputData.method == "DELETE") {
         this.removeSubscribers(chemical);
       }
     }
@@ -35,7 +36,7 @@ module.exports = function RealtimeMongoResource(plasma, config){
   this.on("RealtimeMongoResourceAdmin", function(chemical){
     chemical.type = chemical.chain.shift();
 
-    if(chemical.data.type == "unsubscribe") {
+    if(chemical.data.method == "UNSUBSCRIBE") {
       this.destroySubscriber(chemical);
     }
 
@@ -52,9 +53,9 @@ module.exports.prototype.notifyAllModuleSubscribers = function(chemical){
     var subscriber = this.subscribers[i];
     var sameCollection = subscriber.collection == inputData.collection;
     var sameId = subscriber.id == inputData.id;
-    var notSameConnection = subscriber.connection != chemical.connection;
+    var sameConnection = subscriber.connection == chemical.connection;
 
-    if(sameCollection && sameId && notSameConnection) {
+    if(sameCollection && sameId && !sameConnection) {
       subscriber.connection.emit("RealtimeMongoResource", inputData);
     }
   }
@@ -99,7 +100,9 @@ module.exports.prototype.removeSubscribers = function(chemical) {
 module.exports.prototype.destroySubscriber = function(chemical){
   for(var i = 0; i<this.subscribers.length; i++) {
     var subscriber = this.subscribers[i];
-    if(subscriber.connection == chemical.connection) {
+    var sameCollection = chemical.collection?subscriber.collection == chemical.collection:true;
+    var sameConnection = subscriber.connection == chemical.connection;
+    if(sameCollection && sameConnection) {
       this.subscribers.splice(i, 1);
       i -= 1;
     }

@@ -1,5 +1,5 @@
 var Backbone = require("backbone");
-require("../../client/RealtimeMongoBackbone").attach(Backbone);
+require("../../utils/client/RealtimeMongoBackbone").attach(Backbone);
 var WebCell = require("../../WebCell");
 var _ = require("underscore");
 var io = require("socket.io-client");

@@ -9,6 +9,7 @@
     "organic": "latest",
     "socket.io": "latest",
     "backbone": "latest",
+    "backbone-callbacks": "latest",
     "underscore": "latest",
     "socket.io-client": "latest",
     "mongojs": "latest",

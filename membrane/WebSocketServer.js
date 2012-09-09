@@ -50,7 +50,7 @@ module.exports.prototype.handleIncomingConnection = function (connection) {
 
   var self = this;
   _.each(this.config.events, function(chemicalAddon, eventType) {
-    connection.on(eventType, function(data, callback){ 
+    connection.on(eventType, function(data, callback){ //XXX callback
       self.handleIncomingMessage(chemicalAddon, eventType, data, connection, callback); 
     });
   });
