@@ -1,14 +1,16 @@
 var _ = require("underscore");
 
-module.exports.attach = function(Backbone, plasma) {
+module.exports.attach = function(Backbone, plasma, realtimeOptions) {
 
-  var realtimeOptions = {
+  realtimeOptions = _.extend({
     storeMessage: "MongoStore"
-  }
+  }, realtimeOptions || {});
+  
   var count = 0;
   var callbacks = [];
 
   plasma.on("MongoBackbone", function(chemical){
+
     // fired once there is response for the op
     for(var i = 0; i<callbacks.length; i++)
       if(chemical.traceId == callbacks[i].traceId) {
@@ -70,6 +72,7 @@ module.exports.attach = function(Backbone, plasma) {
         // in case it is updating via model
         if(model.id)
           updateData = {$set: updateData};
+        
         plasma.emit({
           type: realtimeOptions.storeMessage,
           chain: ["MongoBackbone"],

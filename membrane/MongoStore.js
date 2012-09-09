@@ -45,6 +45,7 @@ module.exports.prototype.executeMongoAction = function(chemical, callback) {
 
   switch(inputData.method) {
     case "POST":
+
       collection.save(inputData.body, inputData.options || {}, function(err, data){
         chemical.err = err;
         if(data) // XXX convert _id to string
