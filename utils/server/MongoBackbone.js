@@ -70,7 +70,7 @@ module.exports.attach = function(Backbone, plasma, realtimeOptions) {
         delete updateData._id; // XXX
 
         // in case it is updating via model
-        if(model.id)
+        if(model.id && typeof updateData["$push"] == "undefined" && typeof updateData["$set"] == "undefined")
           updateData = {$set: updateData};
         
         plasma.emit({

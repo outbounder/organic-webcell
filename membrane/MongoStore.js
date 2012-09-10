@@ -29,6 +29,13 @@ module.exports.prototype.handleIncomingChemical = function(chemical){
   });
 }
 
+var sanitazeId = function(id){
+  if(id instanceof mongojs.ObjectId || typeof id == "object")
+    return id;
+  else
+    return mongojs.ObjectId(id);
+}
+
 module.exports.prototype.executeMongoAction = function(chemical, callback) {
 
   // store data as inputData, to be used later on when needed
@@ -45,18 +52,15 @@ module.exports.prototype.executeMongoAction = function(chemical, callback) {
 
   switch(inputData.method) {
     case "POST":
-
       collection.save(inputData.body, inputData.options || {}, function(err, data){
         chemical.err = err;
-        if(data) // XXX convert _id to string
-          data._id = data._id.toString();
         chemical.data = data;
         callback();
       });
     break;
     case "GET":
       if(inputData.id)
-        collection.findOne({_id: mongojs.ObjectId(inputData.id)}, function(err, data){
+        collection.findOne({_id: sanitazeId(inputData.id)}, function(err, data){
           chemical.err = err;
           chemical.data = data;
           callback();
@@ -71,7 +75,7 @@ module.exports.prototype.executeMongoAction = function(chemical, callback) {
     case "PUT":
       var pattern;
       if(inputData.id)
-        pattern = {_id: mongojs.ObjectId(inputData.id)};
+        pattern = {_id: sanitazeId(inputData.id)};
       else
         pattern = inputData.pattern;
       collection.update(pattern, inputData.body, inputData.options || {}, function(err, count){
@@ -83,7 +87,7 @@ module.exports.prototype.executeMongoAction = function(chemical, callback) {
     case "DELETE":
       var pattern;
       if(inputData.id)
-        pattern = {_id: mongojs.ObjectId(inputData.id)};
+        pattern = {_id: sanitazeId(inputData.id)};
       else
         pattern = inputData.pattern;
       collection.remove(pattern, inputData.options || {}, function(err, count){
