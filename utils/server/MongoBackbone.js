@@ -17,7 +17,8 @@ module.exports.attach = function(Backbone, plasma, realtimeOptions) {
         var callback = callbacks[i];
         callbacks.splice(i,1);
         if(chemical.data && !chemical.err) {
-          modelInstances.push(callback.model);
+          if(chemical.inputData.method == "POST" || chemical.inputData.method == "GET")
+            modelInstances.push(callback.model);
           callback.options.success(chemical.data)
         } else
           callback.options.error(chemical.err);
