@@ -1,7 +1,8 @@
+var root = "../../../";
 var Chemical = require("organic").Chemical;
 var Plasma = require("organic").Plasma;
-var WebSocketServer = require("../../membrane/WebSocketServer");
-var LogicAction = require("../../plasma/LogicAction");
+var WebSocketServer = require(root+"membrane/WebSocketServer");
+var LogicAction = require(root+"plasma/LogicAction");
 var io = require("socket.io-client");
 
 var plasma = new Plasma();

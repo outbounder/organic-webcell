@@ -3,30 +3,36 @@ var _ = require("underscore");
 module.exports.attach = function(Backbone, plasma, realtimeOptions) {
 
   realtimeOptions = _.extend({
-    storeMessage: "MongoStore"
+    chain: ["MongoStore", "MongoBackbone"]
   }, realtimeOptions || {});
   
   var count = 0;
   var callbacks = [];
+  var modelInstances = [];
 
   plasma.on("MongoBackbone", function(chemical){
-
     // fired once there is response for the op
     for(var i = 0; i<callbacks.length; i++)
       if(chemical.traceId == callbacks[i].traceId) {
         var callback = callbacks[i];
         callbacks.splice(i,1);
-        if(chemical.data && !chemical.err)
+        if(chemical.data && !chemical.err) {
+          modelInstances.push(callback.model);
           callback.options.success(chemical.data)
-        else
+        } else
           callback.options.error(chemical.err);
         return;
       }
   });
-    
-  var BackboneCallbacks = require("backbone-callbacks")
-  BackboneCallbacks.attach(Backbone);
 
+  var serverConnection = {
+    emit: function(eventName, inputData) {
+      for(var i = 0; i<modelInstances.length; i++)
+        if(modelInstances[i].id == inputData.id)
+          modelInstances[i].set(inputData.body["$set"]);
+    }
+  }
+    
   var BackboneSync = Backbone.sync;
   Backbone.sync = function(method, model, options){
     // use default BackboneSync for other models...
@@ -38,12 +44,15 @@ module.exports.attach = function(Backbone, plasma, realtimeOptions) {
     var callback = {model: model, options: options, traceId: count++};
     callbacks.push(callback);
 
+    var chain = _.clone(realtimeOptions.chain);
+    var type = chain.shift();
     switch(method) {
       case "create": 
         plasma.emit({
-          type: realtimeOptions.storeMessage,
-          chain: ["MongoBackbone"],
+          type: type,
+          chain: chain,
           traceId: callback.traceId,
+          connection: serverConnection,
           data: {
             collection: model.collectionName,
             method: "POST",
@@ -53,9 +62,10 @@ module.exports.attach = function(Backbone, plasma, realtimeOptions) {
       break;
       case "read":
         plasma.emit({
-          type: realtimeOptions.storeMessage,
-          chain: ["MongoBackbone"],
+          type: type,
+          chain: chain,
           traceId: callback.traceId,
+          connection: serverConnection,
           data: {
             collection: model.collectionName,
             pattern: options.pattern,
@@ -66,9 +76,10 @@ module.exports.attach = function(Backbone, plasma, realtimeOptions) {
       break;
       case "update":
         plasma.emit({
-          type: realtimeOptions.storeMessage,
-          chain: ["MongoBackbone"],
+          type: type,
+          chain: chain,
           traceId: callback.traceId,
+          connection: serverConnection,
           data: {
             collection: model.collectionName,
             pattern: options.pattern,
@@ -80,9 +91,10 @@ module.exports.attach = function(Backbone, plasma, realtimeOptions) {
       break;
       case "delete":
         plasma.emit({
-          type: realtimeOptions.storeMessage,
-          chain: ["MongoBackbone"],
+          type: type,
+          chain: chain,
           traceId: callback.traceId,
+          connection: serverConnection,
           data: {
             collection: model.collectionName,
             pattern: options.pattern,
@@ -107,7 +119,11 @@ module.exports.attach = function(Backbone, plasma, realtimeOptions) {
   });
 
   Backbone.MongoCollection = Backbone.Collection.extend({
-    collectionName: null
+    collectionName: null,
+    initialize: function(pattern) {
+      if(pattern)
+        this.fetch({pattern: pattern});
+    }
   });
 
 }

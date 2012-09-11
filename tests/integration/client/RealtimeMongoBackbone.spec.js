@@ -1,6 +1,7 @@
+var root = "../../../";
 var Backbone = require("backbone");
-require("../../utils/client/RealtimeMongoBackbone").attach(Backbone);
-var WebCell = require("../../WebCell");
+
+var WebCell = require(root+"WebCell");
 var _ = require("underscore");
 var io = require("socket.io-client");
 
@@ -31,22 +32,11 @@ var dna = {
   }
 }
 
-
-var TestModel = Backbone.RealtimeModel.extend({
-  idAttribute: "_id",
-  collectionName: "test"
-});
-var TestModel2 = Backbone.RealtimeModel.extend({
-  idAttribute: "_id",
-  collectionName: "test"
-});
-
-var TestCollection1 = Backbone.RealtimeCollection.extend({
-  model: TestModel,
-  collectionName: "test"
-});
-
 describe("RealtimeBackbone", function(){
+  var realtime;
+  var TestModel;
+  var TestModel2;
+  var TestCollection1;
 
   var cell;
   var secondConnection;
@@ -63,8 +53,21 @@ describe("RealtimeBackbone", function(){
   });
 
   it("should be able to connect", function(next){
-    Backbone.realtime.connect("http://localhost:8081", function(){
+    realtime = require(root+"utils/client/RealtimeMongoBackbone").attach(Backbone);
+    realtime.connect("http://localhost:8081", function(){
       next();
+    });
+    TestModel = Backbone.RealtimeModel.extend({
+      idAttribute: "_id",
+      collectionName: "test"
+    });
+    TestModel2 = Backbone.RealtimeModel.extend({
+      idAttribute: "_id",
+      collectionName: "test"
+    });
+    TestCollection1 = Backbone.RealtimeCollection.extend({
+      model: TestModel,
+      collectionName: "test"
     });
   });
 
@@ -215,7 +218,7 @@ describe("RealtimeBackbone", function(){
   });
 
   it("should kill the cell", function(){
-    Backbone.realtime.disconnect();
+    realtime.disconnect();
     secondConnection.disconnect();
     cell.kill();
   });

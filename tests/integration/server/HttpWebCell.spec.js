@@ -1,4 +1,5 @@
-var Cell = require("../../WebCell");
+var root = "../../../";
+var Cell = require(root+"WebCell");
 var Chemical = require("organic").Chemical;
 
 describe("ClientPage", function(){

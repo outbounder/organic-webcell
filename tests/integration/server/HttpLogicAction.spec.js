@@ -1,7 +1,8 @@
+var root = "../../../";
 var Chemical = require("organic").Chemical;
 var Plasma = require("organic").Plasma;
-var HttpServer = require("../../membrane/ExpressHttpServer");
-var LogicAction = require("../../plasma/LogicAction");
+var HttpServer = require(root+"membrane/ExpressHttpServer");
+var LogicAction = require(root+"plasma/LogicAction");
 var request = require("request");
 
 var plasma = new Plasma();

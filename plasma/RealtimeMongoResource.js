@@ -77,6 +77,8 @@ module.exports.prototype.notifyAllCollectionSubscribers = function(chemical){
 }
 
 module.exports.prototype.addSubscriber = function(chemical){
+  if(!chemical.connection) throw new Error("can not add subscriber without connection");
+
   this.subscribers.push({
     connection: chemical.connection, 
     collection: chemical.inputData.collection,

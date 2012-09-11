@@ -1,6 +1,7 @@
+var root = "../../../";
 var Backbone = require("backbone");
-require("../../utils/client/RealtimeMongoBackbone").attach(Backbone);
-var WebCell = require("../../WebCell");
+
+var WebCell = require(root+"WebCell");
 var _ = require("underscore");
 
 var dna = {
@@ -28,6 +29,7 @@ describe("RealtimeBackboneModel", function(){
   var cell;
   var Model;
   var instance;
+  var realtime;
 
   it("should have server started", function(next){
     cell = new WebCell(dna);
@@ -37,7 +39,8 @@ describe("RealtimeBackboneModel", function(){
   });
 
   it("should be able to connect", function(next){
-    Backbone.realtime.connect("http://localhost:8083", function(){
+    realtime = require(root+"utils/client/RealtimeMongoBackbone").attach(Backbone);
+    realtime.connect("http://localhost:8083", function(){
       next();
     });
   });
@@ -92,7 +95,7 @@ describe("RealtimeBackboneModel", function(){
   });
 
   it("should kill the cell", function(){
-    Backbone.realtime.disconnect();
+    realtime.disconnect();
     cell.kill();
   });
 });

@@ -1,6 +1,6 @@
+var root = "../../../";
 var Backbone = require("backbone");
-require("../../utils/client/RealtimeMongoBackbone").attach(Backbone);
-var WebCell = require("../../WebCell");
+var WebCell = require(root+"WebCell");
 var _ = require("underscore");
 
 var dna = {
@@ -26,13 +26,10 @@ var dna = {
 
 describe("RealtimeBackboneCollection", function(){
   var cell;
-  var Model = Backbone.RealtimeModel.extend({
-    collectionName: "test"
-  });
-  var Collection = Backbone.RealtimeCollection.extend({
-    model: Model,
-    collectionName: "test"
-  });
+  var realtime;
+  
+  var Model;
+  var Collection;
   
   var collection;
   var model;
@@ -45,8 +42,16 @@ describe("RealtimeBackboneCollection", function(){
   });
 
   it("should be able to connect", function(next){
-    Backbone.realtime.connect("http://localhost:8082", function(){
+    realtime = require(root+"utils/client/RealtimeMongoBackbone").attach(Backbone);
+    realtime.connect("http://localhost:8082", function(){
       next();
+    });
+    Model = Backbone.RealtimeModel.extend({
+      collectionName: "test"
+    });
+    Collection = Backbone.RealtimeCollection.extend({
+      model: Model,
+      collectionName: "test"
     });
   });
 
@@ -88,7 +93,7 @@ describe("RealtimeBackboneCollection", function(){
   });
 
   it("should kill the cell", function(){
-    Backbone.realtime.disconnect();
+    realtime.disconnect();
     cell.kill();
   });
 });

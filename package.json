@@ -1,22 +1,26 @@
 {
   "name": "organic-webcell",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "main": "WebCell.js",
   "scripts": {
     "test": "jasmine-node ./tests/"
   },
   "dependencies": {
     "organic": "latest",
-    "socket.io": "latest",
+    
+    "socket.io": "0.9.10",
+    "socket.io-client": "0.9.10",
+
+    "mongojs": "0.4.3",
+    "express": "2.5.10",
+    "connect-mongo": "0.2.0",
+    "i18next": "1.5.0",
+    "jade": "0.27.2",
+
     "backbone": "latest",
     "backbone-callbacks": "latest",
     "underscore": "latest",
-    "socket.io-client": "latest",
-    "mongojs": "latest",
-    "express": "2.5.10",
-    "connect-mongo": "latest",
-    "i18next": "1.5.0",
-    "jade": "latest",
+
     "browserify": "latest",
     "uglify-js": "latest",
     "domready": "latest",

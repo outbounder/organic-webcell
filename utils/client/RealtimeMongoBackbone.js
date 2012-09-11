@@ -36,10 +36,11 @@ module.exports.attach = function(Backbone, realtimeOptions){
     realtimeNotificationMessage: "RealtimeMongoResource"
   }
 
-  if(Backbone.realtime && Backbone.realtime.connection)
-    throw new Error("can not connect second time");
-
-  var realtime = {};
+  var realtime = {
+    modelInstances: [],
+    collectionInstances: [],
+    connection: null
+  };
 
   realtime.connect = function(target, options, callback){
     if(typeof options == "function") {
@@ -61,26 +62,19 @@ module.exports.attach = function(Backbone, realtimeOptions){
     realtime.connection = undefined;
   }
 
-  realtime.modelInstances = [];
-  realtime.collectionInstances = [];
-
-  Backbone.realtime = realtime;
-
   var BackboneSync = Backbone.sync;
 
   Backbone.sync = function(method, model, options){
-    if(!model.realtime) {
-      BackboneSync.call(this, method, model, options);
-      return
-    }
+    if(!model.realtime)
+      return BackboneSync.call(this, method, model, options);
 
     if(!model.collectionName)
       throw new Error("Missing collectionName in model", model);
 
-    var connection = model.connection || realtime.connection;
+    var connection = model.connection();
 
     if(!connection)
-      throw new Error("Missing connection in model or Backbone.realtime not connected");
+      throw new Error("Missing connection in model or realtime not connected");
 
     switch(method) {
       case "create": 
@@ -170,15 +164,18 @@ module.exports.attach = function(Backbone, realtimeOptions){
   Backbone.RealtimeModel = Backbone.Model.extend({
     idAttribute: "_id",
     realtime: true,
+    connection: function(){
+      return this.$connection || realtime.connection;
+    },
     useConnection: function(value, ownHandler){
-      this.connection = value;
-      this.connection.on(realtimeOptions.realtimeNotificationMessage, ownHandler || function(data){
+      this.$connection = value;
+      this.$connection.on(realtimeOptions.realtimeNotificationMessage, ownHandler || function(data){
         handleNotifications(data, realtime.modelInstances, realtime.collectionInstances);
       });
     },
     disableRealtime: function(callback){
       this.realtime = false;
-      var connection = this.connection || realtime.connection;
+      var connection = this.connection();
       connection.emit(realtimeOptions.realtimeManagementMessage, {
         method: "UNSUBSCRIBE",
         collection: this.collectionName,
@@ -195,15 +192,18 @@ module.exports.attach = function(Backbone, realtimeOptions){
 
   Backbone.RealtimeCollection = Backbone.Collection.extend({
     realtime: true,
+    connection: function(){
+      return this.$connection || realtime.connection;
+    },
     useConnection: function(value, ownHandler){
-      this.connection = value;
-      this.connection.on(realtimeOptions.realtimeNotificationMessage, ownHandler || function(data){
+      this.$connection = value;
+      this.$connection.on(realtimeOptions.realtimeNotificationMessage, ownHandler || function(data){
         handleNotifications(data, realtime.modelInstances, realtime.collectionInstances);
       });
     },
     disableRealtime: function(callback){
       this.realtime = false;
-      var connection = this.connection || realtime.connection;
+      var connection = this.connection();
       connection.emit(realtimeOptions.realtimeManagementMessage, {
         method: "UNSUBSCRIBE",
         collection: this.collectionName
@@ -216,4 +216,6 @@ module.exports.attach = function(Backbone, realtimeOptions){
       }
     }
   });
+
+  return realtime;
 }
