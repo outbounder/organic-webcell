@@ -23,10 +23,12 @@ module.exports.attach = function(Backbone, plasma, realtimeOptions) {
         return;
       }
   });
+    
+  var BackboneCallbacks = require("backbone-callbacks")
+  BackboneCallbacks.attach(Backbone);
 
   var BackboneSync = Backbone.sync;
   Backbone.sync = function(method, model, options){
-
     // use default BackboneSync for other models...
     if(!(model instanceof Backbone.MongoModel) && !(model instanceof Backbone.MongoCollection)) {
       BackboneSync.call(this, method, model, options);
@@ -45,7 +47,7 @@ module.exports.attach = function(Backbone, plasma, realtimeOptions) {
           data: {
             collection: model.collectionName,
             method: "POST",
-            body: model.toJSON()
+            body: model.toMongoJSON()
           }
         });
       break;
@@ -63,16 +65,6 @@ module.exports.attach = function(Backbone, plasma, realtimeOptions) {
         });
       break;
       case "update":
-
-        // get JSON representation
-        var updateData = model.toJSON();
-        
-        delete updateData._id; // XXX
-
-        // in case it is updating via model
-        if(model.id && typeof updateData["$push"] == "undefined" && typeof updateData["$set"] == "undefined")
-          updateData = {$set: updateData};
-        
         plasma.emit({
           type: realtimeOptions.storeMessage,
           chain: ["MongoBackbone"],
@@ -82,7 +74,7 @@ module.exports.attach = function(Backbone, plasma, realtimeOptions) {
             pattern: options.pattern,
             id: model.id,
             method: "PUT",
-            body: updateData
+            body: {$set: model.toMongoJSON()}
           }
         });
       break;
@@ -106,7 +98,12 @@ module.exports.attach = function(Backbone, plasma, realtimeOptions) {
 
   Backbone.MongoModel = Backbone.Model.extend({
     idAttribute: "_id",
-    collectionName: null
+    collectionName: null,
+    toMongoJSON : function(){
+      var json = this.toJSON();
+      delete json._id;
+      return json;
+    }
   });
 
   Backbone.MongoCollection = Backbone.Collection.extend({
