@@ -18,10 +18,8 @@ module.exports = function ExpressHttpServer(plasma, config){
   this.mountMiddleware();
   this.app.use(this.app.router);
   this.mountHttpRoutes();
-
   
-  this.on("HttpServer", this.handleIncomingResponse);
-  this.once("kill", this.close);
+  this.on("kill", this.close);
 
   config.port = config.port || 1337;
 
@@ -69,39 +67,25 @@ module.exports.prototype.mountHttpRoutes = function(){
 module.exports.prototype.handleIncomingRequest = function(chemicalAddons, req, res){
   var chemical = new Chemical();
   
-  chemical.traceId = this.count++;
   chemical.req = req;
   chemical.res = res;
   _.extend(chemical, JSON.parse(JSON.stringify(chemicalAddons))); // better way to do it?
-  chemical.type = chemical.chain.shift();
-
-  // store incoming req, res to be able to respond on httpResponse chemical.
-  this.responseClients.push({req: req, res: res, traceId: chemical.traceId});
 
   // finally emit to the plasma
-  this.emit(chemical);
-}
-
-module.exports.prototype.handleIncomingResponse =  function(chemical){
-  for(var i = 0; i<this.responseClients.length; i++) {
-    var client = this.responseClients[i];
-    if(chemical.traceId == client.traceId) {
-      if(chemical['content-type'])
-        client.res.header('Content-type', chemical['content-type']);
-      if(chemical.data instanceof Buffer) {
-        client.res.write(chemical.data);
-        client.res.end();
-      } else {
-        client.res.send(chemical.data, chemical.statusCode || 200);
-      }
-      this.responseClients.splice(i,1);
-      return;
+  this.emit(chemical, function(chemical){
+    if(chemical['content-type'])
+      res.header('Content-type', chemical['content-type']);
+    if(chemical.data instanceof Buffer) {
+      res.write(chemical.data);
+      res.end();
+    } else {
+      res.send(chemical.data, chemical.statusCode || 200);
     }
-  }
-  return false;
-};
+  });
+}
 
 module.exports.prototype.close = function(chemical){
   this.server.close();
+  this.closed = true;
   return false;
 }

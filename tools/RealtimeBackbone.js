@@ -31,7 +31,7 @@ var handleNotifications = function(inputData, modelInstances, collectionInstance
 
 module.exports.attach = function(Backbone, realtimeOptions){
   realtimeOptions = realtimeOptions || {
-    storeMessage: "MongoStore",
+    storeMessage: "RealtimeMongoResource",
     realtimeManagementMessage: "RealtimeMongoResourceAdmin",
     realtimeNotificationMessage: "RealtimeMongoResource"
   }
@@ -62,10 +62,8 @@ module.exports.attach = function(Backbone, realtimeOptions){
     realtime.connection = undefined;
   }
 
-  var BackboneSync = Backbone.sync;
-
-  Backbone.sync = function(method, model, options){
-    if(!model.realtime)
+  var mongoSync = function(method, model, options){
+    if(!(model instanceof Backbone.RealtimeModel) && !(model instanceof Backbone.RealtimeCollection))
       return BackboneSync.call(this, method, model, options);
 
     if(!model.collectionName)
@@ -76,94 +74,28 @@ module.exports.attach = function(Backbone, realtimeOptions){
     if(!connection)
       throw new Error("Missing connection in model or realtime not connected");
 
-    switch(method) {
-      case "create": 
-        connection.emit(realtimeOptions.storeMessage, {
-          collection: model.collectionName,
-          method: "POST",
-          body: model.toJSON()
-        }, function(err, data){
-          if(err) {
-            options.error(err);
-          } else {
-            options.success(data);
-            realtime.modelInstances.push(model);
-          }
-        });
-      break;
-      case "read":
-        connection.emit(realtimeOptions.storeMessage, {
-          collection: model.collectionName,
-          pattern: options.pattern,
-          id: model.id,
-          method: "GET"
-        }, function(err, data){
-          if(err) {
-            options.error(err);
-          } else {
-            options.success(data);
-            if(model instanceof Backbone.RealtimeCollection) {
-              for(var i = 0; i<model.models.length; i++)
-                realtime.modelInstances.push(model.models[i]);
-              realtime.collectionInstances.push(model);
-            }
-            else
-              realtime.modelInstances.push(model);
-          }
-        });
-      break;
-      case "update":
+    var data;
+    var pattern;
+    if(method == "create" ||  method == "update")
+      data = model.toJSON();
+    else
+      data = model.id || model.pattern;
 
-        // get JSON representation
-        var updateData = model.toJSON();
-        
-        delete updateData._id; // XXX
+    connection.emit(realtimeOptions.storeMessage, {
+      collection: model.collectionName,
+      method: method,
+      data: data,
+      pattern: method == "update"?(model.id || model.pattern):undefined
+    }, function(err, data){
+      if(err) return options.error(err);
+      options.success(data);
+    });
 
-        // in case it is updating via model
-        if(model.id)
-          updateData = {$set: updateData};
-
-        connection.emit(realtimeOptions.storeMessage, {
-          collection: model.collectionName,
-          pattern: options.pattern,
-          id: model.id,
-          method: "PUT",
-          body: updateData
-        }, function(err, data){
-          if(err) 
-            options.error(err);
-          else
-            options.success(data);
-        });
-      break;
-      case "delete":
-        connection.emit(realtimeOptions.storeMessage, {
-          collection: model.collectionName,
-          pattern: options.pattern,
-          id: model.id,
-          method: "DELETE"
-        }, function(err, data){
-          if(err) {
-            options.error(err);
-          } else {
-            options.success(data);
-            for(var i = 0; i<realtime.modelInstances.length; i++) {
-              if(model == realtime.modelInstances[i]) {
-                realtime.modelInstances.splice(i,1);
-                i -= 1;
-              }
-            }
-          }
-        });
-      break;
-      default:
-        throw new Error("not recognized method ", method);
-    }
   }
 
   Backbone.RealtimeModel = Backbone.Model.extend({
     idAttribute: "_id",
-    realtime: true,
+    sync: mongoSync,
     connection: function(){
       return this.$connection || realtime.connection;
     },
@@ -177,10 +109,11 @@ module.exports.attach = function(Backbone, realtimeOptions){
       this.realtime = false;
       var connection = this.connection();
       connection.emit(realtimeOptions.realtimeManagementMessage, {
-        method: "UNSUBSCRIBE",
+        method: "unsubscribe",
         collection: this.collectionName,
-        id: this.id
+        data: this.id
       }, callback);
+
       for(var i = 0; i<realtime.modelInstances.length; i++) {
         if(realtime.modelInstances[i] === this) {
           realtime.modelInstances.splice(i, 1);
@@ -191,7 +124,7 @@ module.exports.attach = function(Backbone, realtimeOptions){
   });
 
   Backbone.RealtimeCollection = Backbone.Collection.extend({
-    realtime: true,
+    sync: mongoSync,
     connection: function(){
       return this.$connection || realtime.connection;
     },
@@ -205,9 +138,10 @@ module.exports.attach = function(Backbone, realtimeOptions){
       this.realtime = false;
       var connection = this.connection();
       connection.emit(realtimeOptions.realtimeManagementMessage, {
-        method: "UNSUBSCRIBE",
+        method: "unsubscribe",
         collection: this.collectionName
       }, callback);
+
       for(var i = 0; i<realtime.collectionInstances.length; i++) {
         if(realtime.collectionInstances[i] === this) {
           realtime.collectionInstances.splice(i, 1);

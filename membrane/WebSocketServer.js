@@ -32,9 +32,7 @@ module.exports = function WebSocketServer(plasma, config){
     throw new Error("Can't find attachToChemical or port in config", config);
 
   this.server.set("log level", config.logLevel || 0);
-
-  this.on("WebSocketServer", this.handleOutgoingMessage);
-
+  
   this.on("kill", function(){
     if(this.server)
       this.server.server.close();
@@ -46,8 +44,6 @@ util.inherits(module.exports, Organel);
 
 module.exports.prototype.handleIncomingConnection = function (connection) {
   
-  this.emit(new Chemical("socketConnection", connection));
-
   var self = this;
   _.each(this.config.events, function(chemicalAddon, eventType) {
     connection.on(eventType, function(data, callback){ //XXX callback
@@ -55,15 +51,11 @@ module.exports.prototype.handleIncomingConnection = function (connection) {
     });
   });
 
-  connection.on('disconnect', function(){ 
-    for(var i = 0; i<self.responseClients.length; i++) {
-      if(self.responseClients[i].connection == connection) {
-        self.responseClients.splice(i, 1);
-        i -= 1;
-      }
-    }
+  connection.on('disconnect', function(){
     self.emit(new Chemical("socketClosed", connection)); 
   });
+
+  this.emit(new Chemical("socketConnection", connection));
 }
 
 module.exports.prototype.handleIncomingMessage = function(chemicalAddons, event, data, connection, callback){
@@ -72,24 +64,9 @@ module.exports.prototype.handleIncomingMessage = function(chemicalAddons, event,
   chemical.data = data;
   _.extend(chemical, JSON.parse(JSON.stringify(chemicalAddons))); // better way to do it?
 
-  chemical.type = chemical.chain.shift();
-  chemical.traceId = this.count++;
-  
   chemical.connection = connection;
-  chemical.callback = callback;
-
-  if(callback)
-    this.responseClients.push({ traceId: chemical.traceId, callback: callback, connection: connection });
-  this.emit(chemical);
-}
-
-module.exports.prototype.handleOutgoingMessage = function(chemical) {
-  for(var i = 0; i<this.responseClients.length; i++) {
-    var client = this.responseClients[i];
-    if(client.traceId == chemical.traceId) {
-      client.callback(chemical.err, chemical.data);
-      this.responseClients.splice(i, 1);
-      return;
-    }
-  }
+  
+  this.emit(chemical, function(chemical){
+    callback(chemical.err, chemical.data);
+  });
 }

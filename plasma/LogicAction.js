@@ -7,13 +7,9 @@ module.exports = function LogicAction(plasma, config){
 
   this.config = config;
 
-  this.on(config.handleChemicalType || "LogicAction", function(chemical){
-    if(!chemical.chain) { this.emit(new Error("recieved LogicAction chemical without chain")); return; }
-
+  this.on(config.handleChemicalType || "LogicAction", function(chemical, sender, callback){
     var dataLogic = chemical.action;
     
-    chemical.type = chemical.chain.shift();
-
     var self = this;
     if(Array.isArray(dataLogic)) {
       var next = function(){
@@ -22,14 +18,12 @@ module.exports = function LogicAction(plasma, config){
           handler = require(process.cwd()+handler);
           handler.call(self, chemical, next);
         } else
-          self.emit(chemical);
+          callback(chemical);
       }
       next();
     } else {
       dataLogic = require(process.cwd()+dataLogic);
-      dataLogic.call(this, chemical, function(){
-        self.emit(chemical);
-      });
+      dataLogic.call(this, chemical, callback);
     }
   });
 }

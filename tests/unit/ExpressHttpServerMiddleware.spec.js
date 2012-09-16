@@ -22,22 +22,21 @@ describe("HttpServer", function(){
     ],
     "routes": {
       "/upload": {
-        chain: ["EchoIncomingHttpRequest", "HttpServer"]
+        type: "EchoIncomingHttpRequest"
       },
       "/post": {
-        chain: ["EchoIncomingHttpRequest", "HttpServer"]
+        type: "EchoIncomingHttpRequest"
       }
     }
   };
 
-  plasma.on("EchoIncomingHttpRequest", function(chemical){
-    chemical.type = chemical.chain.shift();
+  plasma.on("EchoIncomingHttpRequest", function(chemical, sender, callback){
     chemical.data = _.extend(chemical.data || {}, {
       body: chemical.req.body,
       params: chemical.req.params,
       files: chemical.req.files
     });
-    plasma.emit(chemical);
+    callback(chemical);
   });
 
   plasma.on(Error, function(e){
@@ -85,13 +84,17 @@ describe("HttpServer", function(){
       expect(body.files.my_file).toBeDefined();
       expect(body.files.my_file.path).toContain("tests/data/");
       fs.unlink(body.files.my_file.path);
-      httpServer.close();
       next();
     });
     var form = r.form()
     form.append('my_field', 'my_value')
     form.append('my_buffer', new Buffer([1, 2, 3]))
     form.append('my_file', fs.createReadStream(path.join(__dirname, '../data/file.txt')));
+  });
+
+  it("should kill", function(){
+    plasma.emit("kill");
+    expect(httpServer.closed).toBe(true);
   });
 
 });

@@ -9,12 +9,10 @@ module.exports = function PageRender(plasma, config){
   Organel.call(this, plasma);
   var self = this;
   this.files = {};
-  this.on("PageRender", function(chemical){
 
-    if(!chemical.chain) { this.emit(new Error("recieved PageRender chemical without chain")); return; }
-    if(!chemical.page) { this.emit(new Error("recieved PageRender chemical without page, check dna @membrane.httpServer routes")); return; }
+  this.on("PageRender", function(chemical, sender, callback){
 
-    chemical.type = chemical.chain.shift();
+    if(!chemical.page) return callback(new Error("recieved PageRender chemical without page"));
 
     var renderData = {
       code: chemical.code
@@ -30,7 +28,7 @@ module.exports = function PageRender(plasma, config){
       fs.readFile(target, function(err, fileData){
         if(err){
           err.message += " while trying to render "+chemical.page;
-          self.emit(err);
+          callback(err);
           return;
         }
         self.files[target] = jade.compile(fileData, {
@@ -38,12 +36,12 @@ module.exports = function PageRender(plasma, config){
         });
         chemical.data = self.files[target](renderData)
         chemical['content-type'] = "text/html";
-        self.emit(chemical);
+        callback(chemical);
       });
     } else {
       chemical.data = self.files[target](renderData)
       chemical['content-type'] = "text/html";
-      self.emit(chemical);
+      callback(chemical);
     }
   });
 }

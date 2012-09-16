@@ -11,7 +11,7 @@ module.exports = function RealtimeMongoResource(plasma, config){
     this.destroySubscriber(chemical);
   });
 
-  this.on("RealtimeMongoResource", function(chemical){
+  this.on("RealtimeMongoResource", function(chemical, sender, callback){
     chemical.type = chemical.chain.shift();
 
     var inputData = chemical.inputData;

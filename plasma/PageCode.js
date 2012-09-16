@@ -19,17 +19,13 @@ module.exports = function PageCode(plasma, config){
   if(config.useCache)
     console.log("using code cache");
   
-  this.on("PageCode", function(chemical){
-    if(!chemical.chain) { this.emit(new Error("recieved PageCode chemical without chain")); return; }
+  this.on("PageCode", function(chemical, sender, callback){
 
-    chemical.type = chemical.chain.shift();
-    
     var target = process.cwd()+config.root+(chemical.code || config.code);
     
     if(cache[target] && config.useCache) {
       chemical.data = cache[target];
-      self.emit(chemical);
-      return;
+      return callback(chemical);
     }
 
     // combine
@@ -58,7 +54,7 @@ module.exports = function PageCode(plasma, config){
     chemical.data = cache[target];
     chemical['content-type'] = "text/javascript";
 
-    self.emit(chemical);
+    callback(chemical);
   });
 }
 

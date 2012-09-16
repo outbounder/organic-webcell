@@ -12,6 +12,7 @@ module.exports = function MongoStore(plasma, config){
 
   var self = this;
   this.on("MongoStore", this.handleIncomingChemical);
+  this.emit("MongoStore", this);
 
   this.on("kill", function(){
     this.store.close();
@@ -21,84 +22,67 @@ module.exports = function MongoStore(plasma, config){
 
 util.inherits(module.exports, Organel);
 
-module.exports.prototype.handleIncomingChemical = function(chemical){
-  var self = this;
-  self.executeMongoAction(chemical, function(){
-    chemical.type = chemical.chain.shift();
-    self.emit(chemical);
-  });
-}
+module.exports.prototype.handleIncomingChemical = function(chemical, sender, callback){
 
-var sanitazeId = function(id){
-  if(id instanceof mongojs.ObjectId || typeof id == "object")
-    return id;
-  else
-    return mongojs.ObjectId(id);
-}
-
-module.exports.prototype.executeMongoAction = function(chemical, callback) {
-
-  // store data as inputData, to be used later on when needed
-  // this is done before collection handlers, because after actions expect inputData prop.
-  var inputData = chemical.inputData = chemical.data;
-
-  if(!inputData.collection) {
-    chemical.err = new Error("Missing collection in data", inputData);
-    callback();
+  if(!chemical.collection) {
+    chemical.err = new Error("Missing collection in data", chemical);
+    callback(chemical);
     return;
   }
 
-  var collection = this.store.collection(inputData.collection);
+  var collection = this.store.collection(chemical.collection);
 
-  switch(inputData.method) {
-    case "POST":
-      collection.save(inputData.body, inputData.options || {}, function(err, data){
+  switch(chemical.method) {
+    case "save":
+      collection.save(chemical.data, chemical.options || {}, function(err, data){
         chemical.err = err;
-        chemical.data = data;
-        callback();
+        chemical.result = data;
+        callback(chemical);
       });
     break;
-    case "GET":
-      if(inputData.id)
-        collection.findOne({_id: sanitazeId(inputData.id)}, function(err, data){
-          chemical.err = err;
-          chemical.data = data;
-          callback();
-        });
-      else
-        collection.find(inputData.pattern || {}, inputData.options || {}, function(err, data){
-          chemical.err = err;
-          chemical.data = data;
-          callback();
-        });
-    break;
-    case "PUT":
-
+    case "find":
       var pattern;
-      if(inputData.id)
-        pattern = {_id: sanitazeId(inputData.id)};
-      else
-        pattern = inputData.pattern;
-      collection.update(pattern, inputData.body, inputData.options || {}, function(err, count){
+      var methodName;
+
+      if(typeof chemical.data == "string") {
+        methodName = "findOne";
+        pattern = {_id:  mongojs.ObjectId(chemical.data)};
+      } else {
+        methodName = "find";
+        pattern = chemical.data
+      }
+      collection[methodName](pattern, function(err, data){
         chemical.err = err;
-        chemical.data = count;
-        callback();
+        chemical.result = data;
+        callback(chemical);
       });
     break;
-    case "DELETE":
+    case "update":
       var pattern;
-      if(inputData.id)
-        pattern = {_id: sanitazeId(inputData.id)};
+      if(typeof chemical.data == "string")
+        pattern = {_id:  mongojs.ObjectId(chemical.data)};
       else
-        pattern = inputData.pattern;
-      collection.remove(pattern, inputData.options || {}, function(err, count){
+        pattern = chemical.data;
+      collection.update(pattern, chemical.body, chemical.options || {}, function(err, count){
         chemical.err = err;
-        chemical.data = count;
-        callback();
+        chemical.result = count;
+        callback(chemical);
+      });
+    break;
+    case "remove":
+      var pattern;
+      if(typeof chemical.data == "string")
+        pattern = {_id:  mongojs.ObjectId(chemical.data)};
+      else
+        pattern = chemical.data;
+      collection.remove(pattern, chemical.options || {}, function(err, count){
+        chemical.err = err;
+        chemical.result = count;
+        callback(chemical);
       });
     break;
     default: 
-      throw new Error("couldn't understand type ", inputData.method, chemical);
+      throw new Error("couldn't understand type "+chemical.method);
     break;
   }
 }

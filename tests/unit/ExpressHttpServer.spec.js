@@ -11,17 +11,11 @@ describe("HttpServer", function(){
     "port": 8080,
     "routes": {
       "/": {
-        "chain": [
-          "step1",
-          "step2"
-        ]
+        "type": "step1"
       }
     },
     "notfoundRoute": {
-      "chain": [
-        "notFound",
-        "step2"
-      ]
+      "type": "notFound"
     }
   };
   var mockRequest = { url: "myRequest" };
@@ -42,9 +36,6 @@ describe("HttpServer", function(){
     plasma.once("step1", function(chemical){
       expect(chemical.req).toBeDefined();
       expect(chemical.req.url).toBe("myRequest");
-      expect(chemical.traceId).toBe(0);
-      expect(chemical.chain.length).toBe(1);
-      expect(serverConfig.routes['/'].chain.length).toBe(2);
       next();
     });
     // mock req & res
@@ -55,9 +46,6 @@ describe("HttpServer", function(){
     plasma.once("notFound", function(chemical){
       expect(chemical.req).toBeDefined();
       expect(chemical.req.url).toBe("myRequest");
-      expect(chemical.traceId).toBe(1);
-      expect(chemical.chain.length).toBe(1);
-      expect(serverConfig.notfoundRoute.chain.length).toBe(2);
       next();
     });
 
@@ -65,14 +53,9 @@ describe("HttpServer", function(){
     httpServer.handleIncomingRequest(serverConfig.notfoundRoute, mockRequest, mockResponse);
   });
 
-  it("should send response on HttpServer chemical", function(next){
-    mockResponse.send = function(data) {
-      expect(data).toBe("responseData");
-      if(httpServer)
-        httpServer.close();
-      next();
-    }
-    plasma.emit({ type: "HttpServer", traceId: 0, data: "responseData" });
+  it("should close successfully", function(){
+    plasma.emit("kill");
+    expect(httpServer.closed).toBe(true);
   });
 
 });

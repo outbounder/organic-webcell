@@ -12,10 +12,10 @@ describe("WebSocketServer", function(){
     },
     "events": {
       "message": {
-        "chain": ["step1", "step2"]
+        "type": "step1"
       },
       "hello": {
-        "chain": ["step2", "step3"]
+        "type": "step2"
       }
     }
   }
@@ -38,7 +38,6 @@ describe("WebSocketServer", function(){
 
   it("should handle incoming message", function(next){
     plasma.once("step1", function(c){
-      expect(c.chain.length).toBe(1);
       expect(c.data).toBe("hello world");
       expect(c.connection).toBeDefined();
       client.disconnect();
@@ -52,7 +51,6 @@ describe("WebSocketServer", function(){
 
   it("should handle incoming hello", function(next){
     plasma.once("step2", function(c){
-      expect(c.chain.length).toBe(1);
       expect(c.data).toBe("hello world");
       expect(c.connection).toBeDefined();
       client.disconnect();

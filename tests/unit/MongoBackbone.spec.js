@@ -1,15 +1,15 @@
-var Backbone = require('backbone');
 var Chemical = new require("organic").Chemical;
 var Plasma = new require("organic").Plasma;
-var plasma = new Plasma();
 var MongoStore = require("../../membrane/MongoStore");
+var MongoBackbone = require("../../plasma/MongoBackbone");
 var _ = require('underscore');
-require("backbone-callbacks").attach(Backbone);
-require("../../utils/server/MongoBackbone").attach(Backbone, plasma);
+var Backbone = require("backbone");
 
-describe("BackboneMongo", function(){
-  var mongoStore = new MongoStore(plasma, {
-    "dbname": "test-db2"
+describe("MongoBackbone", function(){
+
+  var plasma = new Plasma();
+  var mongoBackbone = new MongoBackbone(plasma, {
+    "dbname": "test-db4"
   });
 
   var Model;
@@ -79,12 +79,11 @@ describe("BackboneMongo", function(){
   });
 
   it("finds models by pattern from mongoCollection instance", function(next){
-    var collection2 = new Collection();
+    var collection2 = new Collection({title: "value4"});
     collection2.on("reset", _.once(function(){
       expect(collection2.length).toBe(1);
       next();
     }));
-    collection2.fetch({pattern: {title: "value4"}});
   });
 
   it("removes models from mongoCollection instance", function(next){
