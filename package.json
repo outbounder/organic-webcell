@@ -14,7 +14,7 @@
     "mongojs": "0.4.3",
     "express": "2.5.10",
     "connect-mongo": "0.2.0",
-    "i18next": "1.5.0",
+    "i18next": "https://github.com/outbounder/i18next-node/tarball/master",
     "jade": "0.27.2",
 
     "backbone": "latest",

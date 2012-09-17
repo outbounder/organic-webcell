@@ -19,11 +19,10 @@ module.exports = function PageRender(plasma, config){
     var renderData = {
       code: chemical.code
     };
+    _.extend(renderData, chemical.req);
 
     if(chemical.data)
       _.extend(renderData, chemical.data);
-    if(chemical.req.locals)
-      _.extend(renderData, chemical.req.locals);
 
     var target = process.cwd()+config.root+chemical.page+".jade";
     if(!self.files[target] || !config.useCache){
