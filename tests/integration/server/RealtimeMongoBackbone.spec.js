@@ -10,7 +10,14 @@ var dna = {
   "membrane": {
     "MongoStore": {
       "source": "membrane/MongoStore",
-      "dbname": "organic-webdata-test"
+      "dbname": "organic-webdata-test",
+      "addons": [
+      "membrane/mongoStoreAddons/MongoBackbone", 
+      {
+        "source": "membrane/mongoStoreAddons/RealtimeBackbone",
+        "baseModel": "MongoModel",
+        "baseCollection": "MongoCollection"
+      }]
     },
     "WebSocketServer": {
       "source": "membrane/WebSocketServer",
@@ -18,25 +25,24 @@ var dna = {
       "logLevel": 1,
       "events": {
         "MongoStore": {
-          "chain": ["MongoStore", "RealtimeMongoResource", "WebSocketServer"]
+          "type": "MongoStore"
         },
-        "RealtimeMongoResourceAdmin": {
-          "chain": ["RealtimeMongoResourceAdmin", "WebSocketServer"]
+        "subscribe": {
+          "type": "subscribe"
+        },
+        "unsubscribe": {
+          "type": "unsubscribe"
         },
         "test": {
-          "chain": ["CustomActionCreate", "WebSocketServer"]
+          "type": "CustomActionCreate"
         },
         "testUpdate": {
-          "chain": ["CustomActionUpdate", "WebSocketServer"]
+          "type": "CustomActionUpdate"
         }
       }
     }
   },
-  "plasma": {
-    "RealtimeMongoResource": {
-      "source": "plasma/RealtimeMongoResource"
-    }
-  }
+  "plasma": {}
 }
 
 
@@ -58,7 +64,7 @@ describe("RealtimeMongoBackbone", function(){
     cell.plasma.on("CustomActionUpdate", function(c){
       var serverModel = new TestServerModel({_id: c.data.id});
       serverModel.save({title: c.data.title}, function(data){
-        c.type = c.chain.shift();
+        c.type = "CustomActionCreate";
         c.data = data;
         cell.plasma.emit(c);
       });
@@ -67,17 +73,14 @@ describe("RealtimeMongoBackbone", function(){
     cell.plasma.on("CustomActionCreate", function(c){
       var serverModel = new TestServerModel();
       serverModel.save(c.data, function(err, data){
-        c.type = c.chain.shift();
+        c.type = "WebSocketServer";
         c.data = data;
         cell.plasma.emit(c);
       });
     });
 
     cell.plasma.once("WebSocketServer", function(){
-      realtime = require(root+"utils/client/RealtimeMongoBackbone").attach(Backbone);
-      require(root+"utils/server/MongoBackbone").attach(Backbone, cell.plasma, {
-        chain: ["MongoStore", "RealtimeMongoResource", "MongoBackbone"]
-      });
+      realtime = require(root+"tools/RealtimeMongoBackbone").attach(Backbone);
 
       TestClientModel = Backbone.RealtimeModel.extend({
         collectionName: "test"

@@ -13,7 +13,7 @@ var config = {
   },
   "events": {
     "myMessage": {
-      "chain": ["LogicAction", "WebSocketServer"],
+      "type": "LogicAction",
       "action": "/tests/data/RealtimeAction"
     }
   }

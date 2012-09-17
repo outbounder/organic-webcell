@@ -10,6 +10,23 @@ module.exports = function MongoStore(plasma, config){
   this.store = mongojs.connect(config.dbname);
   this.config = config;
 
+  if(this.config.addons) {
+    var source;
+    var addonConfig;
+    for(var i = 0; i<this.config.addons.length; i++) {
+      if(typeof this.config.addons[i] == "string") {
+        source = this.config.addons[i];
+        addonConfig = {};
+      } else {
+        source = this.config.addons[i].source;
+        addonConfig = this.config.addons[i];
+      }
+      if(source.indexOf("/") !== 0)
+        source = process.cwd()+"/"+source;
+      require(source)(this, addonConfig);
+    }
+  }
+
   var self = this;
   this.on("MongoStore", this.handleIncomingChemical);
   this.emit("MongoStore", this);

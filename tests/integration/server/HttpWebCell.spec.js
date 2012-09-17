@@ -18,9 +18,7 @@ describe("ClientPage", function(){
         "localesFolder": "/tests/data/client/public/locales",
         "routes":{
           "*": {
-            "chain": [
-              "HttpServer"
-            ],
+            "type": "PageRender",
             "page": "/index"
           }
         },

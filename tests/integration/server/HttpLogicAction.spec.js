@@ -10,7 +10,7 @@ var config = {
   "port": 8085,
   "routes": {
     "/myMessage": {
-      "chain": ["LogicAction", "HttpServer"],
+      "type": "LogicAction",
       "action": "/tests/data/HttpAction"
     }
   }

@@ -1,15 +1,17 @@
 var Chemical = new require("organic").Chemical;
 var Plasma = new require("organic").Plasma;
 var MongoStore = require("../../membrane/MongoStore");
-var MongoBackbone = require("../../plasma/MongoBackbone");
 var _ = require('underscore');
 var Backbone = require("backbone");
 
 describe("MongoBackbone", function(){
 
   var plasma = new Plasma();
-  var mongoBackbone = new MongoBackbone(plasma, {
-    "dbname": "test-db4"
+  var mongoStore = new MongoStore(plasma, {
+    "dbname": "test-db4",
+    "addons": [
+      "membrane/mongoStoreAddons/MongoBackbone"
+    ]
   });
 
   var Model;
@@ -94,6 +96,17 @@ describe("MongoBackbone", function(){
       collection.fetch();
     }));
     collection.at(0).destroy();
+  });
+
+  it("teardowns", function(next){
+    var collection = new Collection({});
+    collection.on("reset", _.once(function(){
+      collection.on("reset", _.once(function(){
+        expect(collection.length).toBe(0);
+        next();
+      }))
+      collection.removeAll();
+    }));
   });
 
   it("kills MongoStore", function(){

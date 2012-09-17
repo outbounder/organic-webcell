@@ -45,9 +45,9 @@ util.inherits(module.exports, Organel);
 module.exports.prototype.handleIncomingConnection = function (connection) {
   
   var self = this;
-  _.each(this.config.events, function(chemicalAddon, eventType) {
-    connection.on(eventType, function(data, callback){ //XXX callback
-      self.handleIncomingMessage(chemicalAddon, eventType, data, connection, callback); 
+  _.each(this.config.events, function(chemicalAddon, eventName) {
+    connection.on(eventName, function(data, callback){ //XXX callback
+      self.handleIncomingMessage(eventName, chemicalAddon, data, connection, callback); 
     });
   });
 
@@ -58,10 +58,10 @@ module.exports.prototype.handleIncomingConnection = function (connection) {
   this.emit(new Chemical("socketConnection", connection));
 }
 
-module.exports.prototype.handleIncomingMessage = function(chemicalAddons, event, data, connection, callback){
+module.exports.prototype.handleIncomingMessage = function(eventName, chemicalAddons, data, connection, callback){
 
   var chemical = new Chemical();
-  chemical.data = data;
+  _.extend(chemical, data);
   _.extend(chemical, JSON.parse(JSON.stringify(chemicalAddons))); // better way to do it?
 
   chemical.connection = connection;
