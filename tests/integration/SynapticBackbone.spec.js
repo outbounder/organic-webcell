@@ -1,13 +1,4 @@
 var root = "../../";
-var Backbone = require("backbone");
-require("backbone-callbacks").attach(Backbone);
-require(root+"lib/SynapticBackbone");
-require(root+"client/SocketioClientSynapse").attach(Backbone);
-require(root+"client/MemorySynapse").attach(Backbone);
-
-var WebCell = require(root+"WebCell");
-var _ = require("underscore");
-var io = require("socket.io-client");
 
 var dna = {
   "membrane": {
@@ -20,7 +11,7 @@ var dna = {
     },
     "WebSocketServer": {
       "source": "membrane/WebSocketServer",
-      "port": 9081,
+      "port": 9071,
       "logLevel": 1,
       "addons": [
         "membrane/socketioAddons/SocketioServerSynapse"
@@ -32,6 +23,17 @@ var dna = {
 
 
 describe("SynapticBackbone", function(){
+
+  var Backbone = require("backbone");
+  require("backbone-callbacks").attach(Backbone);
+  require(root+"lib/SynapticBackbone");
+  require(root+"client/SocketioClientSynapse").attach(Backbone);
+  require(root+"client/MemorySynapse").attach(Backbone);
+
+  var WebCell = require(root+"WebCell");
+  var _ = require("underscore");
+  var io = require("socket.io-client");
+
 
   var cell;
   var secondConnection;
