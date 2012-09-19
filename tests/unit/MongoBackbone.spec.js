@@ -18,7 +18,7 @@ describe("MongoBackbone", function(){
   var model;
   it("define MongoModel", function(){
     Model = Backbone.MongoModel.extend({
-      collectionName: "test"
+      url: "test"
     });
     expect(Model).toBeDefined();
   });
@@ -59,33 +59,36 @@ describe("MongoBackbone", function(){
   var collection;
   it("define MongoCollection", function(){
     Collection = Backbone.MongoCollection.extend({
-      collectionName: "test",
       model: Model
     });
     expect(Collection).toBeDefined();
   });
 
-  it("create MongoCollection instance", function(){
+  it("create MongoCollection instance", function(next){
     collection = new Collection();
+    collection.pattern = {};
     expect(collection).toBeDefined();
+    next();
   });
 
   it("creates new models to MongoCollection instance", function(next){
-    collection.on("add", function(){
+    collection.on("add", _.once(function(){
       expect(collection.length).toBe(1);
       expect(collection.at(0).id).toBeDefined();
       expect(collection.at(0).get("title")).toBe("value4");
       next();
-    });
+    }));
     collection.create({title: "value4"}, {wait: true});
   });
 
   it("finds models by pattern from mongoCollection instance", function(next){
-    var collection2 = new Collection({title: "value4"});
+    var collection2 = new Collection();
+    collection2.pattern = {title: "value4"};
     collection2.on("reset", _.once(function(){
       expect(collection2.length).toBe(1);
       next();
     }));
+    collection2.fetch();
   });
 
   it("removes models from mongoCollection instance", function(next){
@@ -99,14 +102,13 @@ describe("MongoBackbone", function(){
   });
 
   it("teardowns", function(next){
-    var collection = new Collection({});
+    var collection = new Collection();
+    collection.pattern = {title: "value4"};
     collection.on("reset", _.once(function(){
-      collection.on("reset", _.once(function(){
-        expect(collection.length).toBe(0);
-        next();
-      }))
-      collection.removeAll();
+      expect(collection.length).toBe(0);
+      next();
     }));
+    collection.removeAll();
   });
 
   it("kills MongoStore", function(){

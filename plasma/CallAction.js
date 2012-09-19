@@ -2,12 +2,12 @@ var util = require("util");
 var Organel = require("organic").Organel;
 var Chemical = require("organic").Chemical;
 
-module.exports = function LogicAction(plasma, config){
+module.exports = function CallAction(plasma, config){
   Organel.call(this, plasma);
 
   this.config = config;
 
-  this.on(config.handleChemicalType || "LogicAction", function(chemical, sender, callback){
+  this.on(config.handleChemicalType || "CallAction", function(chemical, sender, callback){
     var dataLogic = chemical.action;
     
     var self = this;

@@ -51,14 +51,14 @@ describe("WebSocketServer", function(){
 
   it("should handle incoming hello", function(next){
     plasma.once("step2", function(c){
-      expect(c.data).toBe("hello world");
+      expect(c.mydata).toBe("hello world");
       expect(c.connection).toBeDefined();
       client.disconnect();
       next();
     });
     client = io.connect( "http://localhost", { port: config.port ,  'reconnect': false, 'force new connection': true});
     client.on("connect", function(){
-      client.emit("hello", "hello world");
+      client.emit("hello", {mydata: "hello world"});
     });
   });
 

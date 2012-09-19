@@ -2,7 +2,7 @@ var root = "../../../";
 var Chemical = require("organic").Chemical;
 var Plasma = require("organic").Plasma;
 var HttpServer = require(root+"membrane/ExpressHttpServer");
-var LogicAction = require(root+"plasma/LogicAction");
+var CallAction = require(root+"plasma/CallAction");
 var request = require("request");
 
 var plasma = new Plasma();
@@ -10,26 +10,26 @@ var config = {
   "port": 8085,
   "routes": {
     "/myMessage": {
-      "type": "LogicAction",
+      "type": "CallAction",
       "action": "/tests/data/HttpAction"
     }
   }
 }
 
-var logicActionConfig = {
+var CallActionConfig = {
   "dbname": "content"
 }
 
 var server;
-var logicAction;
+var CallAction;
 
-describe("HttpLogicAction", function(){
+describe("HttpCallAction", function(){
 
   it("should create new instance", function(){
     server = new HttpServer(plasma, config);
-    logicAction = new LogicAction(plasma, logicActionConfig);
+    callAction = new CallAction(plasma, CallActionConfig);
     expect(server).toBeDefined();
-    expect(logicAction).toBeDefined();
+    expect(callAction).toBeDefined();
   });
 
   it("should handle incoming request", function(next){

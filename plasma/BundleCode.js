@@ -11,7 +11,7 @@ var pro = require("uglify-js").uglify
 
 var _ = require("underscore");
 
-module.exports = function PageCode(plasma, config){
+module.exports = function BundleCode(plasma, config){
   Organel.call(this, plasma);
 
   var self = this;
@@ -19,9 +19,9 @@ module.exports = function PageCode(plasma, config){
   if(config.useCache)
     console.log("using code cache");
   
-  this.on("PageCode", function(chemical, sender, callback){
+  this.on("BundleCode", function(chemical, sender, callback){
 
-    var target = process.cwd()+config.root+(chemical.code || config.code);
+    var target = process.cwd()+(chemical.root || config.root)+(chemical.code || config.code)+".js";
     
     if(cache[target] && config.useCache) {
       chemical.data = cache[target];
@@ -33,7 +33,7 @@ module.exports = function PageCode(plasma, config){
     b.register(".jade", function(body, file){
       var compiled = jade.compile(body, {
         filename: file
-      })(_.extend({}, chemical.data, chemical.req.locals));
+      })(_.extend({}, chemical.data, chemical.req || {}));
       var escaped = "module.exports = '"+compiled.replace(/[\']/g, "\\'").replace(/[\n]/g, "\\n")+"';";
       return escaped;
     });
@@ -52,7 +52,6 @@ module.exports = function PageCode(plasma, config){
 
     cache[target] = new Buffer(cache[target]);
     chemical.data = cache[target];
-    chemical['content-type'] = "text/javascript";
 
     callback(chemical);
   });

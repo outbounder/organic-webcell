@@ -2,7 +2,7 @@ var root = "../../../";
 var Chemical = require("organic").Chemical;
 var Plasma = require("organic").Plasma;
 var WebSocketServer = require(root+"membrane/WebSocketServer");
-var LogicAction = require(root+"plasma/LogicAction");
+var CallAction = require(root+"plasma/CallAction");
 var io = require("socket.io-client");
 
 var plasma = new Plasma();
@@ -13,26 +13,26 @@ var config = {
   },
   "events": {
     "myMessage": {
-      "type": "LogicAction",
+      "type": "CallAction",
       "action": "/tests/data/RealtimeAction"
     }
   }
 }
 
-var logicActionConfig = {
+var CallActionConfig = {
 
 }
 
 var server;
-var logicAction;
+var callAction;
 
-describe("RealtimeLogicAction", function(){
+describe("RealtimeCallAction", function(){
 
   it("should create new instance", function(){
     server = new WebSocketServer(plasma, config);
-    logicAction = new LogicAction(plasma, logicActionConfig);
+    server = new CallAction(plasma, CallActionConfig);
     expect(server).toBeDefined();
-    expect(logicAction).toBeDefined();
+    expect(server).toBeDefined();
   });
 
   it("should handle incoming connection", function(next){

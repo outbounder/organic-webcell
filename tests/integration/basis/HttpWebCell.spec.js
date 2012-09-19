@@ -1,35 +1,33 @@
 var root = "../../../";
-var request = require("request");
 var Cell = require(root+"WebCell");
 var Chemical = require("organic").Chemical;
+var request = require("request");
 
 describe("ClientPage", function(){
   
   var cell;
+
+  var mockRequest = { url: "myRequest", headers: {} };
+  var mockResponse = { send: function(){} };
+
   var dnaData = {
     "membrane":{
       "HttpServer": {
         "source": "membrane/ExpressHttpServer",
-        "port": 8078,
+        "port": 8079,
         "staticFolder": "/tests/data/client/public",
         "localesFolder": "/tests/data/client/public/locales",
-        "routes": {
+        "routes":{
           "*": {
-            "type": [ "PageCode", "PageRender" ],
-            "page": "/index",
-            "code": "/index.js"
+            "type": "RenderPage",
+            "page": "/index"
           }
         },
       }
     },
     "plasma": {
-      "PageCode": {
-        "source": "plasma/PageCode",
-        "root": "/tests/data/client",
-        "useCache": false
-      },
-      "PageRender": {
-        "source": "plasma/PageRender",
+      "RenderPage": {
+        "source": "plasma/RenderPage",
         "root": "/tests/data/client"
       }
     }
@@ -41,17 +39,18 @@ describe("ClientPage", function(){
       expect(chemical).toBeDefined();
       next();
     });
+    cell.plasma.on(Error, function(e){
+      throw e;
+    })
   });
 
-  it("should return rendered page as response on request", function(next){
+  it("should emit rendered page", function(next){
     request("http://localhost:"+dnaData.membrane.HttpServer.port+"/", function(err, res, body){
-      expect(err).toBe(null);
-      expect(body).toContain("index");
       expect(body).toContain("<div class");
-      expect(body).toContain("container");
+      expect(body).toContain("index");
       cell.kill();
       next();
-    }); 
+    });
   });
 
 });

@@ -16,6 +16,7 @@ module.exports = function WebSocketServer(plasma, config){
   if(config.attachToChemical) {
     this.on(config.attachToChemical, function(chemical){
       this.server = io.listen(chemical.data.server, config.socketio || {}, function(){
+        self.loadAddons(); 
         self.emit(new Chemical("WebSocketServer", self));
       });
       this.server.sockets.on('connection', function(socket){ self.handleIncomingConnection(socket); });
@@ -24,6 +25,7 @@ module.exports = function WebSocketServer(plasma, config){
   else
   if(config.port) {
     this.server = io.listen(config.port, config.socketio || {}, function(){
+      self.loadAddons(); 
       self.emit(new Chemical("WebSocketServer", self));
     });
     this.server.sockets.on('connection', function(socket){ self.handleIncomingConnection(socket); });
@@ -32,7 +34,7 @@ module.exports = function WebSocketServer(plasma, config){
     throw new Error("Can't find attachToChemical or port in config", config);
 
   this.server.set("log level", config.logLevel || 0);
-  
+     
   this.on("kill", function(){
     if(this.server)
       this.server.server.close();
@@ -41,6 +43,25 @@ module.exports = function WebSocketServer(plasma, config){
 }
 
 util.inherits(module.exports, Organel);
+
+module.exports.prototype.loadAddons = function(){
+  if(this.config.addons) {
+    var source;
+    var addonConfig;
+    for(var i = 0; i<this.config.addons.length; i++) {
+      if(typeof this.config.addons[i] == "string") {
+        source = this.config.addons[i];
+        addonConfig = {};
+      } else {
+        source = this.config.addons[i].source;
+        addonConfig = this.config.addons[i];
+      }
+      if(source.indexOf("/") !== 0)
+        source = process.cwd()+"/"+source;
+      require(source)(this, addonConfig);
+    }
+  }
+}
 
 module.exports.prototype.handleIncomingConnection = function (connection) {
   
@@ -61,12 +82,16 @@ module.exports.prototype.handleIncomingConnection = function (connection) {
 module.exports.prototype.handleIncomingMessage = function(eventName, chemicalAddons, data, connection, callback){
 
   var chemical = new Chemical();
-  _.extend(chemical, data);
+  if(typeof data == "object")
+    _.extend(chemical, data);
+  else
+    chemical.data = data;
   _.extend(chemical, JSON.parse(JSON.stringify(chemicalAddons))); // better way to do it?
 
   chemical.connection = connection;
   
   this.emit(chemical, function(chemical){
-    callback(chemical.err, chemical.data);
+    if(callback)
+      callback(chemical.err, chemical.data);
   });
 }

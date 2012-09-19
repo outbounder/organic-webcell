@@ -15,17 +15,16 @@ module.exports = function(config, httpServer){
     resSetPath: target+'/__lng__/__ns__.json'
   }, config));
 
+  i18next.init(_.extend({
+    ns: { namespaces: ['translation'], defaultNs: 'translation'},
+    fallbackLng: 'dev',
+    saveMissing: true,
+    resGetPath: target+'/__lng__/__ns__.json',
+    resSetPath: target+'/__lng__/__ns__.json'
+  }, config));
+
   // checks current language settings: cookie, header, querystring ?setLng=bg
-  httpServer.app.use(function(req, res, next){
-    req.locals = {
-      t: i18next.t,
-      translate: i18next.t,
-      lng: i18next.lng,
-      locale: i18next.lng,
-      language: i18next.lng
-    }
-    i18next.handle(req, res, next);
-  });
+  httpServer.app.use(i18next.handle);
 
   i18next.serveDynamicResources(httpServer.app)    // route which returns all resources in on response
          .serveMissingKeyRoute(httpServer.app)     // route to send missing keys

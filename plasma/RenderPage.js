@@ -5,25 +5,20 @@ var jade = require("jade");
 var fs = require("fs");
 var _ = require("underscore");
 
-module.exports = function PageRender(plasma, config){
+module.exports = function RenderPage(plasma, config){
   Organel.call(this, plasma);
   var self = this;
   this.files = {};
 
-  this.on("PageRender", function(chemical, sender, callback){
+  this.on("RenderPage", function(chemical, sender, callback){
 
-    if(!chemical.page) return callback(new Error("recieved PageRender chemical without page"));
-
-    var renderData = {
-      code: chemical.code
-    };
-
+    var renderData = {};
     if(chemical.data)
       _.extend(renderData, chemical.data);
-    if(chemical.req.locals)
-      _.extend(renderData, chemical.req.locals);
+    if(chemical.req)
+      _.extend(renderData, chemical.req);
 
-    var target = process.cwd()+config.root+chemical.page+".jade";
+    var target = process.cwd()+(chemical.root || config.root)+(chemical.page || config.page)+".jade";
     if(!self.files[target] || !config.useCache){
       fs.readFile(target, function(err, fileData){
         if(err){
@@ -35,12 +30,10 @@ module.exports = function PageRender(plasma, config){
           filename: target
         });
         chemical.data = self.files[target](renderData)
-        chemical['content-type'] = "text/html";
         callback(chemical);
       });
     } else {
       chemical.data = self.files[target](renderData)
-      chemical['content-type'] = "text/html";
       callback(chemical);
     }
   });
