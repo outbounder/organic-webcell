@@ -85,10 +85,10 @@ describe("SynapticBackbone", function(){
 
     Backbone.addModelSynapse("mongo", models.ServerModel, Backbone.MongoSynapse);
     Backbone.addModelSynapse("socketio", models.ServerModel, Backbone.SocketioServerSynapse);
-    Backbone.addCollectionSynapse("socketio", models.ServerCollection, Backbone.SocketioServerSynapse);
 
     models.ServerModel.socketio.listen(function(){
       models.ServerModel.mongo.connect();  
+      Backbone.addCollectionSynapse("socketio", models.ServerCollection, Backbone.SocketioServerSynapse);
       tryNext();
     });
     
@@ -96,22 +96,86 @@ describe("SynapticBackbone", function(){
 
     Backbone.addModelSynapse("socketio", models.ClientModel, Backbone.SocketioClientSynapse);
     Backbone.addModelSynapse("memory", models.ClientModel, Backbone.MemorySynapse);
-    Backbone.addCollectionSynapse("socketio", models.ClientCollection, Backbone.SocketioServerSynapse);
 
     models.ClientModel.socketio.connect("http://localhost:"+dna.membrane.WebSocketServer.port, function(){
       models.ClientModel.memory.init();
+      Backbone.addCollectionSynapse("socketio", models.ClientCollection, Backbone.SocketioServerSynapse);
       tryNext();
     });
   });
 
-  it("creates new client model and server collection gets add event", function(next){
+  xit("creates new client model and server collection gets add event", function(next){
     var clientModel = instances.clientModel = new models.ClientModel();
-    /*var serverCollection = instances.serverCollection = new models.ServerCollection();
+    var serverCollection = instances.serverCollection = new models.ServerCollection();
     serverCollection.on("add", function(m){
       expect(m.id).toBeDefined();
       expect(m.get("title")).toBe("add me please");
+      serverCollection.free();
+      next();
     });
-    clientModel.save({title: "add me please"});*/
+    clientModel.save({title: "add me please"});
+  });
+
+  it("creates new client model and both server + client collections get add event", function(next){
+    var clientModel = instances.clientModel = new models.ClientModel();
+    var serverCollection = instances.serverCollection = new models.ServerCollection();
+    var clientCollection = instances.clientCollection = new models.ClientCollection();
+    var count = 0;
+    var handleAdd = function(m){
+
+      expect(m.id).toBeDefined();
+      expect(m.get("title")).toBe("add me please2");
+      count += 1;
+      if(count == 2) {
+        serverCollection.free();
+        clientCollection.free();
+        next();
+      }
+    }
+    clientCollection.on("add", handleAdd)
+    serverCollection.on("add", handleAdd);
+    clientModel.save({title: "add me please2"});
+  });
+
+  it("updates client model and both server + client collection get change event", function(next){
+    var clientModel = instances.clientModel;
+    var serverCollection = instances.serverCollection = new models.ServerCollection();
+    var clientCollection = instances.clientCollection = new models.ClientCollection();
+    var count = 0;
+    var handleChange = function(m){
+      expect(m.id).toBeDefined();
+      expect(m.get("title")).toBe("change me please");
+      count += 1;
+      if(count == 2) {
+        serverCollection.free();
+        clientCollection.free();
+        next();
+      }
+    }
+    clientCollection.on("change", handleChange)
+    serverCollection.on("change", handleChange);
+    clientModel.save({title: "change me please"});
+  });
+
+  it("destroys client model and both server + client collection get remove event", function(next){
+    var clientModel = instances.clientModel;
+    var serverCollection = instances.serverCollection = new models.ServerCollection();
+    var clientCollection = instances.clientCollection = new models.ClientCollection();
+    var count = 0;
+    var handleRemove = function(m){
+      expect(m.id).toBeDefined();
+      expect(m.get("title")).toBe("change me please");
+      count += 1;
+      if(count == 2) {
+        clientModel.free();
+        serverCollection.free();
+        clientCollection.free();
+        next();
+      }
+    }
+    clientCollection.on("remove", handleRemove)
+    serverCollection.on("remove", handleRemove);
+    clientModel.destroy();
   });
 
   it("should kill the cell", function(){
