@@ -94,8 +94,10 @@ describe("SynapticBackbone", function(){
     // < -- socketio events -- >
 
     Backbone.addSynapse("socketio", models.ClientModel, Backbone.SocketioClientSynapse);
+    Backbone.addSynapse("memory", models.ClientModel, Backbone.MemorySynapse);
 
     models.ClientModel.socketio.connect("http://localhost:"+dna.membrane.WebSocketServer.port, function(){
+      models.ClientModel.memory.init();
       tryNext();
     });
   });
@@ -166,15 +168,12 @@ describe("SynapticBackbone", function(){
       serverModel.save({title: "1"}, {wait: true});
     });
 
-    xit("notifies client model once server is updated", function(next){
+    it("notifies client model once server is updated", function(next){
       instances.clientModel.once("change", function(){
         expect(instances.clientModel.get("title")).toBe(instances.serverModel.get("title"));
         next();
       });
-      instances.serverModel.once("change", function(){
-        console.log("HHHH".green);
-      });
-      instances.serverModel.save({title: "3"}, {wait: true});
+      instances.serverModel.save({title: "notify client"}, {wait: true});
     });
 
     it("notifies all instances of server model once client model is destroyed", function(next){

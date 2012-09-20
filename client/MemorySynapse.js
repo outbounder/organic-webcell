@@ -9,7 +9,7 @@ var MemorySynapse = function(ModelClass, config){
 MemorySynapse.prototype.init = function() {
   this.ModelClass.on("broadcast", function(chemical, sender, callback){
     if(this.config.debug) console.log("inmemory sync = noop".red, chemical);
-    callback(null, chemical.model);
+    callback(null, chemical.model.toJSON());
   }, this);
 }
 

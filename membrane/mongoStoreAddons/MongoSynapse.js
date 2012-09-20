@@ -28,15 +28,6 @@ module.exports = function MongoBackbone(mongoStore, config){
   }
 
   var mongoSync = function mongoSync(method, model, options){
-
-    var saveResponse = function(err, data) {
-      if(err) return options.error(err);
-      if(data._id)
-        data._id = data._id.toString();
-      model.set(data, {silent: true});
-      options.success(data);
-    }
-
     var readResponse = function(err, data){
       if(err) return options.error(err);
       if(data._id)
@@ -46,24 +37,18 @@ module.exports = function MongoBackbone(mongoStore, config){
       options.success(data);
     }
 
-    var updateResponse = function(err, count){
-      if(err || count == 0) 
-        return options.error(err || new Error("failed to update model, mongo returned count "+count));
-      options.success(model.toJSON());
-    }
-
-    var deleteResponse = function(err, data) {
-      if(err) return options.error(err);
-      options.success(model.toJSON());
-    }
-
     var url = model.url || model.model.prototype.url;
     var collectionName = _.isFunction(url) ? url() :url;
     var collection = store.collection(collectionName);
 
     switch(method) {
       case "create": 
-        collection.save(model.toJSON(), saveResponse);
+        collection.save(model.toJSON(), function(err, data) {
+          if(err) return options.error(err);
+          if(data._id)
+            data._id = data._id.toString();
+          options.success(data);
+        });
       break;      
       case "read":
         if(model.id)
@@ -84,7 +69,17 @@ module.exports = function MongoBackbone(mongoStore, config){
         var updateData = model.toJSON();
         if(updateData._id) delete updateData._id;
 
-        collection.update(pattern, {$set: updateData}, updateResponse);
+        collection.update(pattern, {$set: updateData}, function(err, count){
+          if(err || count == 0) 
+            return options.error(err || new Error("failed to update model, mongo returned count "+count));
+          // return back the id to the updateData
+          updateData._id = model.id; 
+          // emit back the updated data. mongodb do not return 
+          // updated data, calling modle.toJSON() here returns old json, 
+          // not equal to updateData constructed above. therefore we are emitting updateData instead. 
+          // really strange issue indeed however the code makes sense
+          options.success(updateData); 
+        });
       break;
       case "delete":
         var pattern;
@@ -92,7 +87,10 @@ module.exports = function MongoBackbone(mongoStore, config){
           pattern = {_id: mongojs.ObjectId(model.id)};
         else
           throw new Error("deleting model without id");
-        collection.remove(pattern, deleteResponse);
+        collection.remove(pattern, function(err, data) {
+          if(err) return options.error(err);
+          options.success(model.toJSON());
+        });
       break;
       default:
         throw new Error("not recognized method ", method);
