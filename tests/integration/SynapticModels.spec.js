@@ -83,20 +83,20 @@ describe("SynapticBackbone", function(){
         next();
     }
 
-    Backbone.addSynapse("mongo", models.ServerModel, Backbone.MongoSynapse);
-    Backbone.addSynapse("socketio", models.ServerModel, Backbone.SocketioServerSynapse);
+    Backbone.addModelSynapse("mongo", models.ServerModel, Backbone.MongoSynapse);
+    Backbone.addModelSynapse("serverSocketio", models.ServerModel, Backbone.SocketioServerSynapse);
 
-    models.ServerModel.socketio.listen(function(){
+    models.ServerModel.serverSocketio.listen(function(){
       models.ServerModel.mongo.connect();  
       tryNext();
     });
     
     // < -- socketio events -- >
 
-    Backbone.addSynapse("socketio", models.ClientModel, Backbone.SocketioClientSynapse);
-    Backbone.addSynapse("memory", models.ClientModel, Backbone.MemorySynapse);
+    Backbone.addModelSynapse("clientSocketio", models.ClientModel, Backbone.SocketioClientSynapse);
+    Backbone.addModelSynapse("memory", models.ClientModel, Backbone.MemorySynapse);
 
-    models.ClientModel.socketio.connect("http://localhost:"+dna.membrane.WebSocketServer.port, function(){
+    models.ClientModel.clientSocketio.connect("http://localhost:"+dna.membrane.WebSocketServer.port, function(){
       models.ClientModel.memory.init();
       tryNext();
     });
@@ -195,7 +195,7 @@ describe("SynapticBackbone", function(){
   });
 
   it("should kill the cell", function(){
-    models.ClientModel.socketio.disconnect();
+    models.ClientModel.clientSocketio.disconnect();
     secondConnection.disconnect();
     cell.kill();
   });
