@@ -1,4 +1,4 @@
-var Backbone = require("backbone");
+var Backbone = require("../../lib/SynapticBackbone");
 var _ = require("underscore");
 var mongojs = require("mongojs");
 

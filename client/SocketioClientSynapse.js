@@ -12,7 +12,7 @@ SocketioClientSynapse.prototype.connect = function(target, connectCallback) {
   this.connection.on("connect", function(){
     
     self.ModelClass.on("broadcast", function(chemical, sender, callback){
-      if(self.config.debug) console.log("client:connection:emit".red, chemical.toJSON());
+      if(self.config.debug) console.log("client:connection:emit".red, self.config.debugData?chemical.toJSON():"");
       this.connection.emit("backbone:model:broadcast", chemical.toJSON(), function(err, response){
         if(self.config.debug) console.log("client:connection:emit:response".red, err, response);
         callback(err, response);

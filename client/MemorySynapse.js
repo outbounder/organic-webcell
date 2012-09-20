@@ -1,6 +1,3 @@
-var Backbone = require("backbone");
-var _ = require("underscore");
-
 var MemorySynapse = function(ModelClass, config){
   this.ModelClass = ModelClass;
   this.config = config;

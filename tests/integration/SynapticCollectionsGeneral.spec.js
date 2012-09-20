@@ -11,7 +11,7 @@ var dna = {
     },
     "WebSocketServer": {
       "source": "membrane/WebSocketServer",
-      "port": 9062,
+      "port": 9061,
       "logLevel": 1,
       "addons": [
         "membrane/socketioAddons/SocketioServerSynapse"
@@ -57,7 +57,7 @@ describe("SynapticBackbone", function(){
 
   it("creates defines some models", function(){
     models.ClientModel = Backbone.Model.extend({
-      url: "synapticTest",
+      url: "synapticTest5",
       idAttribute: "_id"
     });
     models.ClientCollection = Backbone.Collection.extend({
@@ -65,7 +65,7 @@ describe("SynapticBackbone", function(){
     });
 
     models.ServerModel = Backbone.Model.extend({
-      url: "synapticTest",
+      url: "synapticTest5",
       idAttribute: "_id"
     });
     models.ServerCollection = Backbone.Collection.extend({
@@ -86,7 +86,8 @@ describe("SynapticBackbone", function(){
 
     models.ServerModel.socketio.listen(function(){
       models.ServerModel.mongo.connect();  
-      Backbone.addCollectionSynapse("socketio", models.ServerCollection, Backbone.SocketioClientSynapse);
+      Backbone.addCollectionSynapse("socketio", models.ServerCollection, Backbone.SocketioServerSynapse);
+      Backbone.addCollectionSynapse("mongo", models.ServerCollection, Backbone.MongoSynapse).connect();
       tryNext();
     });
     
@@ -97,83 +98,73 @@ describe("SynapticBackbone", function(){
 
     models.ClientModel.socketio.connect("http://localhost:"+dna.membrane.WebSocketServer.port, function(){
       models.ClientModel.memory.init();
-      Backbone.addCollectionSynapse("socketio", models.ClientCollection, Backbone.SocketioServerSynapse);
+      Backbone.addCollectionSynapse("socketio", models.ClientCollection, Backbone.SocketioClientSynapse);
       tryNext();
     });
   });
 
-  it("creates new client model and server collection gets add event", function(next){
-    var clientModel = instances.clientModel = new models.ClientModel();
-    var serverCollection = instances.serverCollection = new models.ServerCollection();
-    serverCollection.on("add", function(m){
-      expect(m.id).toBeDefined();
-      expect(m.get("title")).toBe("add me please");
+  it("creates server collection and fetches all records", function(next){
+    var serverCollection = new models.ServerCollection();
+    serverCollection.pattern = {};
+    serverCollection.fetch({success: function(){
       serverCollection.free();
       next();
-    });
-    clientModel.save({title: "add me please"});
+    }});
   });
 
-  it("creates new client model and both server + client collections get add event", function(next){
+  it("creates new model in client and fetches it from server", function(next){
     var clientModel = instances.clientModel = new models.ClientModel();
-    var serverCollection = instances.serverCollection = new models.ServerCollection();
-    var clientCollection = instances.clientCollection = new models.ClientCollection();
-    var count = 0;
-    var handleAdd = function(m){
-
-      expect(m.id).toBeDefined();
-      expect(m.get("title")).toBe("add me please2");
-      count += 1;
-      if(count == 2) {
+    clientModel.once("change", function(){
+      var serverCollection = new models.ServerCollection();
+      serverCollection.pattern = {title: "test"};
+      serverCollection.fetch({success:function(){
         serverCollection.free();
-        clientCollection.free();
-        next();
-      }
-    }
-    clientCollection.on("add", handleAdd)
-    serverCollection.on("add", handleAdd);
-    clientModel.save({title: "add me please2"});
+        expect(serverCollection.length).toBe(1);
+        instances.clientModel.on("destroy", function(){
+          instances.clientModel.free();
+          next();
+        });
+        instances.clientModel.destroy({wait: true});
+      }});
+      next();
+    });
+    clientModel.save({title: "test"},{wait: true});
   });
 
-  it("updates client model and both server + client collection get change event", function(next){
-    var clientModel = instances.clientModel;
-    var serverCollection = instances.serverCollection = new models.ServerCollection();
-    var clientCollection = instances.clientCollection = new models.ClientCollection();
-    var count = 0;
-    var handleChange = function(m){
-      expect(m.id).toBeDefined();
-      expect(m.get("title")).toBe("change me please");
-      count += 1;
-      if(count == 2) {
-        serverCollection.free();
-        clientCollection.free();
+  it("creates new server model and client fetches it", function(next){
+    var serverModel = new models.ServerModel();
+    serverModel.on("change", function(){
+      expect(serverModel.id).toBeDefined();
+      var clientCollection = new models.ClientCollection();
+      clientCollection.pattern = {_id: serverModel.id};
+      clientCollection.on("add", function(m){
+        expect(m.id).toBe(serverModel.id);
         next();
-      }
-    }
-    clientCollection.on("change", handleChange)
-    serverCollection.on("change", handleChange);
-    clientModel.save({title: "change me please"});
+      });
+      clientCollection.fetch();
+    });
+    serverModel.save({title: "take me"},{wait: true});
   });
 
-  it("destroys client model and both server + client collection get remove event", function(next){
-    var clientModel = instances.clientModel;
-    var serverCollection = instances.serverCollection = new models.ServerCollection();
-    var clientCollection = instances.clientCollection = new models.ClientCollection();
-    var count = 0;
-    var handleRemove = function(m){
-      expect(m.id).toBeDefined();
-      expect(m.get("title")).toBe("change me please");
-      count += 1;
-      if(count == 2) {
-        clientModel.free();
-        serverCollection.free();
-        clientCollection.free();
-        next();
-      }
-    }
-    clientCollection.on("remove", handleRemove)
-    serverCollection.on("remove", handleRemove);
-    clientModel.destroy();
+  it("fetches everything from db and deletes all", function(next){
+    var serverCollection = new models.ServerCollection();
+    serverCollection.pattern = {};
+    serverCollection.fetch({success: function(){
+      expect(serverCollection.length != 0).toBe(true);
+      serverCollection.each(function(m){
+        m.destroy();
+      });
+      next();
+    }});
+  });
+
+  it("checks that server is empty from clientCollection", function(next){
+    var clientCollection = new models.ClientCollection();
+    clientCollection.pattern = {};
+    clientCollection.fetch({success: function(){
+      expect(clientCollection.length).toBe(0);
+      next();
+    }});
   });
 
   it("should kill the cell", function(){

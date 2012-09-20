@@ -11,7 +11,7 @@ var dna = {
     },
     "WebSocketServer": {
       "source": "membrane/WebSocketServer",
-      "port": 9072,
+      "port": 9071,
       "logLevel": 1,
       "addons": [
         "membrane/socketioAddons/SocketioServerSynapse"
@@ -100,47 +100,51 @@ describe("SynapticBackbone", function(){
     });
   });
 
-  //* PART TWO *//
+  //* PART ONE *//
 
-  describe("PART TWO", function(){
-    
-    it("saves instance of server model and client instance gets change event", function(next){
-      var serverModel = instances.serverModel = new models.ServerModel();
-      serverModel.once("change", function(){
-        expect(serverModel.id).toBeDefined();
-        var clientModel = instances.clientModel = new models.ClientModel({_id: serverModel.id});
-        serverModel.once("change", function(){
-          expect(serverModel.get("title")).toBe(clientModel.get("title"));
-          next();
-        });
-        clientModel.save({title: "2"}, {wait: true});
-      });
-      serverModel.save({title: "1"}, {wait: true});
+  describe("PART ONE", function(){
+
+    it("creates new client model", function(next){
+      var clientModel = instances.clientModel = new models.ClientModel();
+      clientModel.on("change", function(){
+        expect(clientModel.get("title")).toBe("value");
+        expect(clientModel.id).toBeDefined();
+        clientModel.free();
+        next();
+      })
+      clientModel.save({title: "value"}, {wait: true});
     });
 
-    it("notifies client model once server is updated", function(next){
-      instances.clientModel.once("change", function(){
-        expect(instances.clientModel.get("title")).toBe(instances.serverModel.get("title"));
+    it("fetches new client model", function(next){
+      var clientModel = instances.clientModel = new models.ClientModel({_id: instances.clientModel.id});
+      clientModel.once("change", function(){
+        expect(clientModel.get("title")).toBe("value");
+        expect(clientModel.id).toBeDefined();
         next();
       });
-      instances.serverModel.save({title: "notify client"}, {wait: true});
+      clientModel.fetch();
     });
 
-    it("notifies all instances of server model once client model is destroyed", function(next){
-      var count = 0;
-      var tryNext = function(){
-        count += 1;
-        if(count == 2) next();
-      }
+    it("updataes last client model", function(next){
+      var clientModel = instances.clientModel;
+      clientModel.once("change", function(){
+        expect(clientModel.get("title")).toBe("value2");
+        expect(clientModel.id).toBeDefined();
+        clientModel.free();
+        next();
+      });
+      clientModel.save({title: "value2"}, {wait: true});
+    });
 
-      var secondServerModel = new models.ServerModel({_id: instances.serverModel.id });
-      secondServerModel.once("destroy", function(){
-        tryNext();
+    it("removes last client model", function(next){
+      var clientModel = instances.clientModel;
+      clientModel.once("destroy", function(){
+        expect(clientModel.get("title")).toBe("value2");
+        expect(clientModel.id).toBeDefined();
+        clientModel.free();
+        next();
       });
-      instances.serverModel.once("destroy", function(){
-        tryNext();
-      });
-      instances.clientModel.destroy();
+      clientModel.destroy();
     });
   });
 
