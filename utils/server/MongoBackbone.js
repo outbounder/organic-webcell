@@ -89,7 +89,7 @@ module.exports.attach = function(Backbone, plasma, realtimeOptions) {
             pattern: options.pattern,
             id: model.id,
             method: "PUT",
-            body: {$set: model.toMongoJSON()}
+            body: {$set: model.changedAttributes(model.toMongoJSON())}
           }
         });
       break;
