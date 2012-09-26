@@ -16,7 +16,7 @@ module.exports = function MongoStore(plasma, config){
     for(var i = 0; i<this.config.addons.length; i++) {
       if(typeof this.config.addons[i] == "string") {
         source = this.config.addons[i];
-        addonConfig = {};
+        addonConfig = config;
       } else {
         source = this.config.addons[i].source;
         addonConfig = this.config.addons[i];
