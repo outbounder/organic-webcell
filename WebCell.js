@@ -6,7 +6,7 @@ var Cell = require("organic").Cell;
 var DNA = require("organic").DNA;
 var Chemical = require("organic").Chemical;
 
-module.exports = function WebDataCell(dna, callback) {
+module.exports = function WebCell(dna, callback) {
   if(dna) {
     Cell.call(this, dna);
     if(callback) callback();

@@ -1,6 +1,6 @@
 {
   "name": "organic-webcell",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "main": "WebCell.js",
   "scripts": {
     "test": "jasmine-node ./tests/"
@@ -12,14 +12,11 @@
     "mongojs": "0.4.3",
     "express": "2.5.10",
     "connect-mongo": "0.2.0",
-    "i18next": "https://github.com/outbounder/i18next-node/tarball/master",
+    "i18next": "1.5.10",
     "jade": "0.27.2",
-    "backbone": "latest",
-    "backbone-callbacks": "latest",
     "underscore": "latest",
-    "browserify": "latest",
-    "uglify-js": "latest",
-    "domready": "latest",
+    "browserify": "1.16.1",
+    "uglify-js": "1.3.3",
     "jquery-browserify": "*"
   },
   "devDependencies": {
