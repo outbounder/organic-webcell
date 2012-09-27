@@ -1,5 +1,6 @@
 var root = "../../../";
 var CallChain = require(root+"plasma/CallChain");
+var CallAction = require(root+"plasma/CallAction");
 var BundleCode = require(root+"plasma/BundleCode");
 var RenderPage = require(root+"plasma/RenderPage");
 
@@ -16,11 +17,17 @@ describe("CallAction", function(){
   var callChain = new CallChain(plasma, config);
   var bundleCode = new BundleCode(plasma, {});
   var renderPage = new RenderPage(plasma, {});
+  var callAction = new CallAction(plasma, {
+    apiEndpoint: "TEST"
+  });
   
   it("should call chain", function(next){
     plasma.emit(new Chemical({
       type: "CallChain",
       chain: [{
+        type: "CallAction",
+        action: "/tests/data/LogicAction"
+      }, {
         type: "BundleCode",
         root: "/tests/data/client",
         code: "/index"

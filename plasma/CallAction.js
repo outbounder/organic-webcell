@@ -1,6 +1,7 @@
 var util = require("util");
 var Organel = require("organic").Organel;
 var Chemical = require("organic").Chemical;
+var _ = require("underscore");
 
 module.exports = function CallAction(plasma, config){
   Organel.call(this, plasma);
@@ -8,7 +9,7 @@ module.exports = function CallAction(plasma, config){
   this.config = config;
 
   this.on(config.handleChemicalType || "CallAction", function(chemical, sender, callback){
-    var dataLogic = chemical.action;
+    var dataLogic = _.clone(chemical.action);
     
     var self = this;
     if(Array.isArray(dataLogic)) {
@@ -17,8 +18,9 @@ module.exports = function CallAction(plasma, config){
         if(handler) {
           handler = require(process.cwd()+handler);
           handler.call(self, chemical, next);
-        } else
+        } else {
           callback(chemical);
+        }
       }
       next();
     } else {

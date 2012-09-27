@@ -1,6 +1,7 @@
 var util = require("util");
 var Organel = require("organic").Organel;
 var Chemical = require("organic").Chemical;
+var _ = require("underscore");
 
 module.exports = function CallChain(plasma, config){
   Organel.call(this, plasma);
@@ -10,26 +11,20 @@ module.exports = function CallChain(plasma, config){
   this.on(config.handleChemicalType || "CallChain", function(chemical, sender, callback){
     var chain = chemical.chain;
     var index = 0;
-    var lastChemical;
     var self = this;
+    var lastChemical;
 
     var emitNext = function(){
-      var data = chain[index++];
-
-      if(data) {
-        var chemical = new Chemical(data);
-        
-        if(lastChemical) {
-          chemical.req = chemical.req || {};
-          chemical.req[lastChemical.type] = lastChemical.data;
-        }
-        
-        self.emit(chemical, function(c){
-          lastChemical = c;
+      if(chain[index]) {
+        var data = _.extend({}, chemical, chain[index++]);
+        var c = new Chemical(data);
+        self.emit(c, function(response){
+          _.extend(chemical, response);
           emitNext();
         });
-      } else
-        callback(lastChemical);
+      } else {
+        callback(chemical);
+      }
     }
     
     emitNext();

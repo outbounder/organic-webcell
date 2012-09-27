@@ -12,12 +12,6 @@ module.exports = function RenderPage(plasma, config){
 
   this.on("RenderPage", function(chemical, sender, callback){
 
-    var renderData = {};
-    if(chemical.data)
-      _.extend(renderData, chemical.data);
-    if(chemical.req)
-      _.extend(renderData, chemical.req);
-
     var target = process.cwd()+(chemical.root || config.root)+(chemical.page || config.page)+".jade";
     if(!self.files[target] || !config.useCache){
       fs.readFile(target, function(err, fileData){
@@ -29,11 +23,11 @@ module.exports = function RenderPage(plasma, config){
         self.files[target] = jade.compile(fileData, {
           filename: target
         });
-        chemical.data = self.files[target](renderData)
+        chemical.data = self.files[target](chemical);
         callback(chemical);
       });
     } else {
-      chemical.data = self.files[target](renderData)
+      chemical.data = self.files[target](chemical)
       callback(chemical);
     }
   });

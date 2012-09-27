@@ -72,14 +72,14 @@ module.exports.prototype.handleIncomingRequest = function(chemicalAddons, req, r
   _.extend(chemical, JSON.parse(JSON.stringify(chemicalAddons))); // better way to do it?
 
   // finally emit to the plasma
-  this.emit(chemical, function(chemical){
-    if(chemical['content-type'])
-      res.header('Content-type', chemical['content-type']);
-    if(chemical.data instanceof Buffer) {
-      res.write(chemical.data);
+  this.emit(chemical, function(response){
+    if(response['content-type'])
+      res.header('Content-type', response['content-type']);
+    if(response.data instanceof Buffer) {
+      res.write(response.data);
       res.end();
     } else {
-      res.send(chemical.data, chemical.statusCode || 200);
+      res.send(response.data, response.statusCode || 200);
     }
   });
 }

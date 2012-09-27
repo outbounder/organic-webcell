@@ -33,7 +33,7 @@ module.exports = function BundleCode(plasma, config){
     b.register(".jade", function(body, file){
       var compiled = jade.compile(body, {
         filename: file
-      })(_.extend({}, chemical.data, chemical.req || {}));
+      })(chemical);
       var escaped = "module.exports = '"+compiled.replace(/[\']/g, "\\'").replace(/[\n]/g, "\\n")+"';";
       return escaped;
     });
