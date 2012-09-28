@@ -33,6 +33,8 @@ module.exports = function ExpressHttpServer(plasma, config){
 util.inherits(module.exports, Organel);
 
 module.exports.prototype.mountMiddleware = function(){
+  if(!this.config.middleware) return;
+  
   var self = this;
   _.each(this.config.middleware, function(middleware){
     
@@ -50,6 +52,8 @@ module.exports.prototype.mountMiddleware = function(){
 }
 
 module.exports.prototype.mountHttpRoutes = function(){
+  if(!this.config.routes) return;
+
   var self = this;
   _.each(this.config.routes, function(chemicalAddons, path){
     if(self.config.logRoutes)

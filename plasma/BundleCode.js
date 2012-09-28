@@ -10,6 +10,7 @@ var jsp = require("uglify-js").parser
 var pro = require("uglify-js").uglify
 
 var _ = require("underscore");
+var path = require("path");
 
 module.exports = function BundleCode(plasma, config){
   Organel.call(this, plasma);
@@ -40,6 +41,15 @@ module.exports = function BundleCode(plasma, config){
     b.register(".raw", function(body, file){
       return "module.exports = '"+body.replace(/[\']/g, "\\'").replace(/[\n]/g, "\\n")+"';";
     });
+    if(config.plugins) {
+      _.each(config.plugins, function(pluginConfig){
+        var plugin = require(pluginConfig.source);
+        if(pluginConfig.source.indexOf("fileify") !== -1 && pluginConfig.arguments.length >= 2) {
+          pluginConfig.arguments[1] = path.normalize(process.cwd()+pluginConfig.arguments[1]);
+        }
+        b.use(plugin.apply(plugin, pluginConfig.arguments));
+      });
+    }
     b.addEntry(target);
     cache[target] = b.bundle();
     

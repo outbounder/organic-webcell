@@ -7,9 +7,6 @@ describe("ClientPage", function(){
   
   var cell;
 
-  var mockRequest = { url: "myRequest", headers: {} };
-  var mockResponse = { send: function(){} };
-
   var dnaData = {
     "membrane":{
       "HttpServer": {
