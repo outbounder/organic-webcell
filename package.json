@@ -1,6 +1,6 @@
 {
   "name": "organic-webcell",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "main": "WebCell.js",
   "scripts": {
     "test": "jasmine-node ./tests/"
@@ -12,6 +12,7 @@
     "mongojs": "0.4.3",
     "express": "2.5.10",
     "connect-mongo": "0.2.0",
+    "connect-gzip": "0.1.5",
     "i18next": "1.5.10",
     "jade": "0.27.2",
     "underscore": "latest",
