@@ -43,6 +43,10 @@ module.exports = function BundleCode(plasma, config){
     });
     if(config.plugins) {
       _.each(config.plugins, function(pluginConfig){
+        pluginConfig = _.clone(pluginConfig);
+        if(pluginConfig.arguments)
+          pluginConfig.arguments = _.clone(pluginConfig.arguments);
+        
         var plugin = require(pluginConfig.source);
         if(pluginConfig.source.indexOf("fileify") !== -1 && pluginConfig.arguments.length >= 2) {
           pluginConfig.arguments[1] = path.normalize(process.cwd()+pluginConfig.arguments[1]);
