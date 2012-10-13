@@ -20,6 +20,7 @@ module.exports = function WebSocketServer(plasma, config){
       this.emit(new Chemical("WebSocketServer", self));
       this.server.set("log level", config.logLevel || 0);
       this.server.sockets.on('connection', function(socket){ self.handleIncomingConnection(socket); });
+      return false;
     });
   }
   else
