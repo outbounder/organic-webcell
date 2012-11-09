@@ -1,6 +1,6 @@
 {
   "name": "organic-webcell",
-  "version": "0.0.12",
+  "version": "0.0.14",
   "main": "WebCell.js",
   "scripts": {
     "test": "jasmine-node ./tests/"
@@ -18,7 +18,12 @@
     "underscore": "latest",
     "browserify": "latest",
     "uglify-js": "1.3.3",
-    "jquery-browserify": "*"
+    "jquery-browserify": "*",
+    "amon": "latest",
+    "winston" : "latest",
+    "winston-mongodb": "latest",
+    "winston-amon": "latest",
+    "glob": "latest"
   },
   "devDependencies": {
     "jasmine-node": "latest",
