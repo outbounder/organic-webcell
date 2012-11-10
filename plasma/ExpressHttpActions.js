@@ -23,13 +23,15 @@ module.exports = function HttpActions(plasma, config){
           context[path.basename(file, path.extname(file))] = require(file);
         });
         self.loadActions(app, config, context, function(){
-          self.emit(chemical);
+          self.emit("HttpServerActions");
         });
       });
     } else 
       self.loadActions(app, config, context, function(){
-        self.emit(chemical);
+        self.emit("HttpServerActions");
       });
+
+    return false;
   });
 }
 
