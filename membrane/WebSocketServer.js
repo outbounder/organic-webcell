@@ -36,7 +36,7 @@ module.exports = function WebSocketServer(plasma, config){
     throw new Error("Can't find attachToChemical or port in config", config);
      
   this.on("kill", function(){
-    if(this.server)
+    if(this.server && !this.config.attachToChemical)
       this.server.server.close();
     return false;
   });

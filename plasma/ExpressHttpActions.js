@@ -37,10 +37,14 @@ util.inherits(module.exports, Organel);
 
 module.exports.prototype.loadActions = function(app, config, context, callback){
   var actionsRoot = config.actions;
+
   glob(actionsRoot+"/**/*.js", function(err, files){
     files.reverse();
     files.forEach(function(file){
       var url = file.replace("_", ":").replace(actionsRoot, "");
+      if(config.mount)
+        url = config.mount+url;
+
       if(file.indexOf("index.js") === -1)
         exportHttpActions(app, url.replace(".js", ""), require(file).call(context, config));
       else
@@ -96,6 +100,9 @@ var registerAction = function(app, method, url, action) {
     break;
     case "DELETE":
       app.del.apply(app, args);
+    break;
+    case "*":
+      app.all.apply(app, args);
     break;
   }
 };
