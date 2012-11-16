@@ -41,16 +41,14 @@ module.exports = function BundleCode(plasma, config){
     b.register(".raw", function(body, file){
       return "module.exports = '"+body.replace(/[\']/g, "\\'").replace(/[\n]/g, "\\n")+"';";
     });
+
     if(config.plugins) {
       _.each(config.plugins, function(pluginConfig){
         pluginConfig = _.clone(pluginConfig);
         if(pluginConfig.arguments)
           pluginConfig.arguments = _.clone(pluginConfig.arguments);
-        
-        var plugin = require(pluginConfig.source);
-        if(pluginConfig.source.indexOf("fileify") !== -1 && pluginConfig.arguments.length >= 2) {
-          pluginConfig.arguments[1] = path.normalize(process.cwd()+pluginConfig.arguments[1]);
-        }
+
+        var plugin = require(process.cwd()+pluginConfig.source);
         b.use(plugin.apply(plugin, pluginConfig.arguments));
       });
     }

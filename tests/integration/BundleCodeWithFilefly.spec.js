@@ -3,7 +3,7 @@ var Plasma = require("organic").Plasma;
 var Chemical = require("organic").Chemical;
 var path = require("path");
 
-describe("BundleCode", function(){
+xdescribe("BundleCode", function(){
   
   var plasma = new Plasma();
   var config = {
@@ -12,7 +12,7 @@ describe("BundleCode", function(){
     "debug": false,
     "plugins": [
       {
-        "source": "fileify",
+        "source": "/tests/fileify",
         "arguments": ["files", "/tests/data/templates"]
       }
     ]
