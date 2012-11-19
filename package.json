@@ -1,12 +1,12 @@
 {
   "name": "organic-webcell",
-  "version": "0.0.17",
+  "version": "0.0.18",
   "main": "WebCell.js",
   "scripts": {
     "test": "jasmine-node ./tests/"
   },
   "dependencies": {
-    "organic": "0.0.4",
+    "organic": "0.0.5",
     "socket.io": "0.9.10",
     "socket.io-client": "0.9.10",
     "mongojs": "0.4.3",
@@ -27,8 +27,7 @@
   },
   "devDependencies": {
     "jasmine-node": "latest",
-    "request": "latest",
-    "fileify": "latest"
+    "request": "latest"
   },
   "license": "MIT"
 }
