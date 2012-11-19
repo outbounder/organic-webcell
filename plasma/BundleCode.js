@@ -35,11 +35,11 @@ module.exports = function BundleCode(plasma, config){
       var compiled = jade.compile(body, {
         filename: file
       })(chemical);
-      var escaped = "module.exports = '"+compiled.replace(/[\']/g, "\\'").replace(/[\n]/g, "\\n")+"';";
+      var escaped = "module.exports = '"+compiled.replace(/[\']/g, "\\'").replace(/[\r]/g, "").replace(/[\n]/g, "\\n")+"';";
       return escaped;
     });
     b.register(".raw", function(body, file){
-      return "module.exports = '"+body.replace(/[\']/g, "\\'").replace(/[\n]/g, "\\n")+"';";
+      return "module.exports = '"+body.replace(/[\']/g, "\\'").replace(/[\r]/g, "").replace(/[\n]/g, "\\n")+"';";
     });
 
     if(config.plugins) {
