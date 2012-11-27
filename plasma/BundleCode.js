@@ -23,6 +23,8 @@ module.exports = function BundleCode(plasma, config){
   this.on("BundleCode", function(chemical, sender, callback){
 
     var target = process.cwd()+(chemical.root || config.root)+(chemical.code || config.code)+".js";
+    if(chemical.code && chemical.code.indexOf("/") === 0)
+      target = chemical.code;
     
     if(cache[target] && config.useCache) {
       chemical.data = cache[target];
@@ -34,7 +36,7 @@ module.exports = function BundleCode(plasma, config){
     b.register(".jade", function(body, file){
       var compiled = jade.compile(body, {
         filename: file
-      })(chemical);
+      })(chemical.data || chemical);
       var escaped = "module.exports = '"+compiled.replace(/[\']/g, "\\'").replace(/[\r]/g, "").replace(/[\n]/g, "\\n")+"';";
       return escaped;
     });

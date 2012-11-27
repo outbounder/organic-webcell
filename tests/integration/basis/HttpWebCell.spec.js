@@ -17,7 +17,7 @@ describe("ClientPage", function(){
         "routes":{
           "*": {
             "type": "RenderPage",
-            "page": "/index"
+            "page": "index"
           }
         },
       }
@@ -25,7 +25,7 @@ describe("ClientPage", function(){
     "plasma": {
       "RenderPage": {
         "source": "plasma/RenderPage",
-        "root": "/tests/data/client"
+        "root": "/tests/data/client/"
       }
     }
   };

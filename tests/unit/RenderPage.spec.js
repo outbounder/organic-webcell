@@ -6,7 +6,7 @@ describe("RenderPage", function(){
   
   var plasma = new Plasma();
   var config = {
-    "root": "/tests/data/client"
+    "root": "/tests/data/client/"
   };
 
   var renderPage = new RenderPage(plasma, config);
@@ -14,7 +14,7 @@ describe("RenderPage", function(){
   it("should get user session on PageData chemical", function(next){
     plasma.emit(new Chemical({
       type: "RenderPage",
-      page: "/index"
+      page: "index"
     }), function(chemical){
       expect(chemical.data).toBeDefined();
       expect(chemical.data).toContain("index");

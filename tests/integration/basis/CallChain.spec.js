@@ -29,12 +29,12 @@ describe("CallAction", function(){
         action: "/tests/data/LogicAction"
       }, {
         type: "BundleCode",
-        root: "/tests/data/client",
-        code: "/index"
+        root: "/tests/data/client/",
+        code: "index"
       }, {
         type: "RenderPage",
-        root: "/tests/data/client",
-        page: "/index2"
+        root: "/tests/data/client/",
+        page: "index2"
       }]
     }), function(chemical){
       expect(chemical.data).toBeDefined();

@@ -16,11 +16,11 @@ describe("ClientPage", function(){
         "routes": {
           "/": {
             "type": "RenderPage",
-            "page": "/index",
+            "page": "index",
           },
           "/code": {
             "type": "BundleCode",
-            "code": "/index"
+            "code": "index"
           }
         },
       }
@@ -28,12 +28,12 @@ describe("ClientPage", function(){
     "plasma": {
       "BundleCode": {
         "source": "plasma/BundleCode",
-        "root": "/tests/data/client",
+        "root": "/tests/data/client/",
         "useCache": false
       },
       "RenderPage": {
         "source": "plasma/RenderPage",
-        "root": "/tests/data/client"
+        "root": "/tests/data/client/"
       }
     }
   };

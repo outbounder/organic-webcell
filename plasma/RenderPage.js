@@ -13,10 +13,13 @@ module.exports = function RenderPage(plasma, config){
   this.on("RenderPage", function(chemical, sender, callback){
 
     var target = process.cwd()+(chemical.root || config.root)+(chemical.page || config.page)+".jade";
+    if(chemical.page && chemical.page.indexOf("/") === 0)
+      target = chemical.page;
+
     if(!self.files[target] || !config.useCache){
       fs.readFile(target, function(err, fileData){
         if(err){
-          err.message += " while trying to render "+chemical.page;
+          err.message += " while trying to render "+target;
           callback(err);
           return;
         }

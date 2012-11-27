@@ -6,7 +6,7 @@ describe("BundleCode", function(){
   
   var plasma = new Plasma();
   var config = {
-    "root": "/tests/data/client",
+    "root": "/tests/data/client/",
     "useCache": false
   };
   var mockRequest = { url: "myRequest", headers: {} };
@@ -17,7 +17,7 @@ describe("BundleCode", function(){
   it("should get user session on PageData chemical", function(next){
     plasma.emit(new Chemical({
       type: "BundleCode",
-      code: "/index",
+      code: "index",
     }), function(chemical){
       expect(chemical.data.toString()).toBeDefined();
       expect(chemical.data.toString()).toContain("index");
