@@ -38,15 +38,15 @@ module.exports = function HttpActions(plasma, config){
 util.inherits(module.exports, Organel);
 
 module.exports.prototype.loadActions = function(app, config, context, callback){
-  var actionsRoot = config.actions;
+  var actionsRoot = config.actions.split("\\").join("/");
 
   glob(actionsRoot+"/**/*.js", function(err, files){
     files.reverse();
     files.forEach(function(file){
-      var url = file.replace("_", ":").replace(actionsRoot, "");
+      var url = file.replace("_", ":").split("\\").join("/").replace(actionsRoot, "");
       if(config.mount)
         url = config.mount+url;
-
+      
       if(file.indexOf("index.js") === -1)
         exportHttpActions(app, url.replace(".js", ""), require(file).call(context, config));
       else
