@@ -23,7 +23,8 @@
     "winston" : "latest",
     "winston-mongodb": "latest",
     "winston-amon": "latest",
-    "glob": "latest"
+    "glob": "latest",
+    "lesscompile": "latest"
   },
   "devDependencies": {
     "jasmine-node": "latest",
