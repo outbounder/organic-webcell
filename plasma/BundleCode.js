@@ -23,7 +23,7 @@ module.exports = function BundleCode(plasma, config){
   this.on("BundleCode", function(chemical, sender, callback){
 
     var target = process.cwd()+(chemical.root || config.root)+(chemical.code || config.code)+".js";
-    if(chemical.code && chemical.code.indexOf("/") === 0)
+    if(chemical.page && (chemical.page.indexOf("/") === 0 || chemical.page.indexOf(":\\") === 1))
       target = chemical.code;
     
     if(cache[target] && config.useCache) {

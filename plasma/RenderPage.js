@@ -13,7 +13,7 @@ module.exports = function RenderPage(plasma, config){
   this.on("RenderPage", function(chemical, sender, callback){
 
     var target = process.cwd()+(chemical.root || config.root)+(chemical.page || config.page)+".jade";
-    if(chemical.page && chemical.page.indexOf("/") === 0)
+    if(chemical.page && (chemical.page.indexOf("/") === 0 || chemical.page.indexOf(":\\") === 1))
       target = chemical.page;
 
     if(!self.files[target] || !config.useCache){
