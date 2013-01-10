@@ -10,11 +10,17 @@ module.exports = function BundleStyle(plasma, config){
 
     Organel.call(this, plasma);
     var cache = {};
+    if(config.useCache)
+        console.log("using style caching");
+
+    if(config.cwd)
+      for(var key in config.cwd)
+        config[key] = process.cwd()+config.cwd[key];
+    this.config = config;
 
     this.on("BundleStyle", function(chemical, sender, callback) {
-        var target = process.cwd()+(chemical.root || config.root)+(chemical.style || config.style);
-        if(chemical.style && (chemical.style.indexOf("/") === 0 || chemical.style.indexOf(":\\") === 1))
-          target = chemical.style;
+        
+        var target = (chemical.root || config.root || "")+(chemical.style || config.style);
 
         // get the type of the bundle by chemical, config or extension name of the target
         var type = chemical.styleType || config.styleType || path.extname(target);

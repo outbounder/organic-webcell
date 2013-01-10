@@ -9,12 +9,18 @@ module.exports = function RenderPage(plasma, config){
   Organel.call(this, plasma);
   var self = this;
   this.files = {};
+  if(config.useCache)
+    console.log("using page template caching");
+
+  if(config.cwd)
+    for(var key in config.cwd)
+      config[key] = process.cwd()+config.cwd[key];
+
+  this.config = config;
 
   this.on("RenderPage", function(chemical, sender, callback){
 
-    var target = process.cwd()+(chemical.root || config.root)+(chemical.page || config.page)+".jade";
-    if(chemical.page && (chemical.page.indexOf("/") === 0 || chemical.page.indexOf(":\\") === 1))
-      target = chemical.page;
+    var target = (chemical.root || config.root || "")+(chemical.page || config.page)+".jade";
 
     if(!self.files[target] || !config.useCache){
       fs.readFile(target, function(err, fileData){

@@ -7,7 +7,9 @@ xdescribe("BundleCode", function(){
   
   var plasma = new Plasma();
   var config = {
-    "root": "/tests/data/client",
+    "cwd": {
+      "root": "/tests/data/client/",
+    },
     "useCache": false,
     "debug": false,
     "plugins": [

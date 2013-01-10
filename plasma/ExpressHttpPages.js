@@ -73,6 +73,48 @@ module.exports.prototype.mountPages = function(app, config, context, callback){
   });
 }
 
+module.exports.prototype.mountPageStyle = function(app, url, file) {
+  var self = this;
+  if(url == "")
+    url = "/style.css";
+  else
+    url += "/style.css";
+
+  if(this.config.log)
+    console.log("pagestyle GET", url);
+
+  app.get(url, function(req, res){
+    self.emit({
+      type: "BundleStyle",
+      code: file, 
+      data: _.extend({}, req)
+    }, function(c){
+      if(!self.config.debug) {
+        var modified = true;
+        try {
+          var mtime = new Date(req.headers['if-modified-since']);
+          if (mtime.getTime() >= self.started.getTime()) {
+            modified = false;
+          }
+        } catch (e) {
+          console.warn(e);
+        }
+        if (!modified) {
+          res.writeHead(304);
+          res.end();
+        } else {
+          res.setHeader('last-modified', self.started.toUTCString());
+          res.setHeader("content-type", "text/javascript");
+          res.send(c.data);
+        }
+      } else {
+        res.setHeader("content-type", "text/javascript");
+        res.send(c.data);
+      }
+    });
+  })
+}
+
 module.exports.prototype.mountPagesWithoutActions = function(app, config, context, callback) {
   var actionsRoot = config.pages;
   var self = this;

@@ -6,7 +6,9 @@ describe("RenderPage", function(){
   
   var plasma = new Plasma();
   var config = {
-    "root": "/tests/data/client/"
+    "cwd": {
+      "root": "/tests/data/client/"  
+    }
   };
 
   var renderPage = new RenderPage(plasma, config);

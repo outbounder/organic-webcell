@@ -28,12 +28,16 @@ describe("ClientPage", function(){
     "plasma": {
       "BundleCode": {
         "source": "plasma/BundleCode",
-        "root": "/tests/data/client/",
+        "cwd": {
+          "root": "/tests/data/client/",
+        },
         "useCache": false
       },
       "RenderPage": {
         "source": "plasma/RenderPage",
-        "root": "/tests/data/client/"
+        "cwd": {
+          "root": "/tests/data/client/"  
+        }
       }
     }
   };

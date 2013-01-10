@@ -25,7 +25,9 @@ describe("ClientPage", function(){
     "plasma": {
       "RenderPage": {
         "source": "plasma/RenderPage",
-        "root": "/tests/data/client/"
+        "cwd": {
+          "root": "/tests/data/client/"
+        }
       }
     }
   };

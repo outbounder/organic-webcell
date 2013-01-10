@@ -15,8 +15,12 @@ describe("CallAction", function(){
   };
   
   var callChain = new CallChain(plasma, config);
-  var bundleCode = new BundleCode(plasma, {});
-  var renderPage = new RenderPage(plasma, {});
+  var bundleCode = new BundleCode(plasma, {cwd: {
+    root: "/tests/data/client/",
+  }});
+  var renderPage = new RenderPage(plasma, {cwd: {
+    root: "/tests/data/client/",
+  }});
   var callAction = new CallAction(plasma, {
     apiEndpoint: "TEST"
   });
@@ -29,11 +33,9 @@ describe("CallAction", function(){
         action: "/tests/data/LogicAction"
       }, {
         type: "BundleCode",
-        root: "/tests/data/client/",
         code: "index"
       }, {
         type: "RenderPage",
-        root: "/tests/data/client/",
         page: "index2"
       }]
     }), function(chemical){

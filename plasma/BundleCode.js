@@ -18,13 +18,16 @@ module.exports = function BundleCode(plasma, config){
   var self = this;
   var cache = {};
   if(config.useCache)
-    console.log("using code cache");
+    console.log("using code caching");
+  
+  if(config.cwd)
+    for(var key in config.cwd)
+      config[key] = process.cwd()+config.cwd[key];
+  this.config = config;
   
   this.on("BundleCode", function(chemical, sender, callback){
 
-    var target = process.cwd()+(chemical.root || config.root)+(chemical.code || config.code)+".js";
-    if(chemical.code && (chemical.code.indexOf("/") === 0 || chemical.code.indexOf(":\\") === 1))
-      target = chemical.code;
+    var target = (chemical.root || config.root || "")+(chemical.code || config.code)+".js";
     
     if(cache[target] && config.useCache) {
       chemical.data = cache[target];
