@@ -48,10 +48,10 @@ describe("ExpressHttpActions", function(){
       }
     }), null, function(){
       expect(mockupApp.routes.all["*"]).toBeDefined();
-      expect(mockupApp.routes.get[""]).toBeDefined();
-      expect(mockupApp.routes.post[""]).toBeDefined();
-      expect(mockupApp.routes.put[""]).toBeDefined();
-      expect(mockupApp.routes.del[""]).toBeDefined();
+      expect(mockupApp.routes.get["/"]).toBeDefined();
+      expect(mockupApp.routes.post["/"]).toBeDefined();
+      expect(mockupApp.routes.put["/"]).toBeDefined();
+      expect(mockupApp.routes.del["/"]).toBeDefined();
       expect(mockupApp.routes.get["/returnTrue"]).toBeDefined();
       expect(mockupApp.routes.get["/inner"]).toBeDefined();
       expect(mockupApp.routes.get["/inner/route"]).toBeDefined();
@@ -61,9 +61,9 @@ describe("ExpressHttpActions", function(){
   });
 
   it("mounted actions are working", function(next){
-    mockupApp.routes.get[""]({}, mockRes);
+    mockupApp.routes.get["/"]({}, mockRes);
     expect(mockRes.lastSend).toBe(true);
-    mockupApp.routes.get[""]({query:{testMiddleware: true}}, mockRes);
+    mockupApp.routes.get["/"]({query:{testMiddleware: true}}, mockRes);
     expect(mockRes.lastSend).toBe(true);
     mockupApp.routes.get["/returnTrue"]({}, mockRes);
     expect(mockRes.lastSend).toBe(true);

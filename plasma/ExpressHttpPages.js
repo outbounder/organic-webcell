@@ -12,7 +12,7 @@ module.exports = function MountHttpPages(plasma, config){
   this.started = new Date((new Date()).toUTCString());
 
   // bootstrap all actions once httpserver is ready
-  this.on("HttpServer", function(chemical){
+  this.on("HttpServer", function(chemical, sender, callback){
     var app = chemical.data.app;
     var context = {
       plasma: this.plasma
@@ -21,19 +21,21 @@ module.exports = function MountHttpPages(plasma, config){
 
     if(config.cwd)
       for(var key in config.cwd)
-        config[key] = process.cwd()+"/"+config.cwd[key];
+        config[key] = process.cwd()+config.cwd[key];
     
-    if(config.pageActions) {
-      glob(config.pageActions+"/**/*.js", function(err, files){
+    if(config.pageHelpers) {
+      glob(config.pageHelpers+"/**/*.js", function(err, files){
         files.forEach(function(file){
           context[path.basename(file, path.extname(file))] = require(file);
         });
         self.mountPages(app, config, context, function(){
+          if(callback) return callback();
           self.emit("HttpServerPages");
         });
       });
     } else 
       self.mountPages(app, config, context, function(){
+        if(callback) return callback();
         self.emit("HttpServerPages");
       });
 
@@ -114,7 +116,7 @@ module.exports.prototype.mountPageCode = function(app, url, file) {
       code: file, 
       data: _.extend({}, req)
     }, function(c){
-      if(process.env.CELL_MODE != "development") {
+      if(!self.config.debug) {
         var modified = true;
         try {
           var mtime = new Date(req.headers['if-modified-since']);
@@ -212,6 +214,7 @@ module.exports.prototype.mountPageRender = function(app, method, url, action, te
   
   if(this.config.log)
     console.log("page", method, url);
+  
   switch(method) {
     case "GET":
       app.get.apply(app, args);

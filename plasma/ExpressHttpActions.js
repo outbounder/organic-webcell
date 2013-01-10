@@ -74,6 +74,8 @@ var response = function(res) {
 };
 
 module.exports.prototype.registerAction = function(app, method, url, action) {
+  if(url == "")
+    url = "/";
   var args = [url];
   if(Array.isArray(action)) {
     _.each(action, function(a){
