@@ -21,7 +21,7 @@
     "jquery-browserify": "*",
     "winston" : "latest",
     "glob": "latest",
-    "lesscompile": "latest"
+    "less": "latest"
   },
   "devDependencies": {
     "jasmine-node": "latest",

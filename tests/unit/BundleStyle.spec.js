@@ -7,12 +7,7 @@ describe("BundleStyle", function(){
   
   var plasma = new Plasma();
   var config = {
-    less: {
-      pathToWatch: __dirname + "/../data/less/src/",
-      fileToCompile: __dirname + "/../data/less/src/main.less",
-      destination: __dirname + "/../data/less/build/styles.css",
-      watchForChanges: false
-    }
+    root: "/tests/data/less/"
   };
 
   var bundleStyle = new BundleStyle(plasma, config);
@@ -20,13 +15,13 @@ describe("BundleStyle", function(){
   it("should compile less with default config", function(next){
     plasma.emit(new Chemical({
       type: "BundleStyle",
-      code: "index",
+      style: "src/main.less",
     }), function(chemical){
+      expect(chemical instanceof Error).toBe(false);
       expect(chemical).toBeDefined();
       expect(chemical.data).toContain(".my-new-style");
       expect(chemical.data).toContain(".footer");
       expect(chemical.data).toContain(".footer {\n  margin: 10px;\n  display: block;");
-      fs.unlink(__dirname + "/../data/less/build/styles.css");
       next();
     });
   });
