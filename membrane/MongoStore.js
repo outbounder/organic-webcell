@@ -7,7 +7,7 @@ var mongojs = require('mongojs');
 module.exports = function MongoStore(plasma, config){
   Organel.call(this, plasma);
 
-  this.store = mongojs.connect(config.dbname);
+  this.store = mongojs.connect({db: config.dbname, safe: false});
   this.config = config;
 
   if(this.config.addons) {
