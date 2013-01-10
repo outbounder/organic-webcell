@@ -6,16 +6,18 @@ var _ = require("underscore");
 
 module.exports = function HttpActions(plasma, config){
   Organel.call(this, plasma);
+  
+  this.config = config;
 
   // bootstrap all actions once httpserver is ready
-  this.on("HttpServer", function(chemical){
+  this.on("HttpServer", function(chemical, sender, callback){
     var app = chemical.data.app;
     var context = {};
     var self = this;
 
     if(config.cwd)
       for(var key in config.cwd)
-        config[key] = process.cwd()+"/"+config.cwd[key];
+        config[key] = process.cwd()+config.cwd[key];
     
     if(config.actionHelpers) {
       glob(config.actionHelpers+"/**/*.js", function(err, files){
@@ -23,11 +25,13 @@ module.exports = function HttpActions(plasma, config){
           context[path.basename(file, path.extname(file))] = require(file);
         });
         self.loadActions(app, config, context, function(){
+          if(callback) return callback();
           self.emit("HttpServerActions");
         });
       });
     } else 
       self.loadActions(app, config, context, function(){
+        if(callback) return callback();
         self.emit("HttpServerActions");
       });
 
@@ -39,18 +43,17 @@ util.inherits(module.exports, Organel);
 
 module.exports.prototype.loadActions = function(app, config, context, callback){
   var actionsRoot = config.actions.split("\\").join("/");
-
+  var self = this;
   glob(actionsRoot+"/**/*.js", function(err, files){
     files.reverse();
     files.forEach(function(file){
       var url = file.replace("_", ":").split("\\").join("/").replace(actionsRoot, "");
       if(config.mount)
         url = config.mount+url;
-      
-      if(file.indexOf("index.js") === -1)
-        exportHttpActions(app, url.replace(".js", ""), require(file).call(context, config));
+      if(file.indexOf("/index.js") === -1)
+        self.exportHttpActions(app, url.replace(".js", ""), require(file).call(context, config));
       else
-        exportHttpActions(app, url.replace("/index.js", ""), require(file).call(context, config));
+        self.exportHttpActions(app, url.replace("/index.js", ""), require(file).call(context, config));
     });
     if(callback) callback();
   });
@@ -70,7 +73,7 @@ var response = function(res) {
   }
 };
 
-var registerAction = function(app, method, url, action) {
+module.exports.prototype.registerAction = function(app, method, url, action) {
   var args = [url];
   if(Array.isArray(action)) {
     _.each(action, function(a){
@@ -88,8 +91,8 @@ var registerAction = function(app, method, url, action) {
     });
   }
   
-  if(process.env.CELL_MODE == "development")
-    console.log(method, url);
+  if(this.config.log)
+    console.log("action", method, url);
   switch(method) {
     case "GET":
       app.get.apply(app, args);
@@ -109,12 +112,12 @@ var registerAction = function(app, method, url, action) {
   }
 };
 
-var exportHttpActions = function(app, root, actions) {
+module.exports.prototype.exportHttpActions = function(app, root, actions) {
   var root = actions.root || root;
 
   for(var key in actions) {
     if(key == "routes") {
-      exportHttpActions(app, root,  actions.routes);
+      this.exportHttpActions(app, root,  actions.routes);
       continue;
     }
 
@@ -127,6 +130,6 @@ var exportHttpActions = function(app, root, actions) {
       if(typeof actionHandler !== "function" && !Array.isArray(actionHandler))
         throw new Error(actionHandler+" was not found");
     }
-    registerAction(app, method, root+(url?url:""), actionHandler);
+    this.registerAction(app, method, root+(url?url:""), actionHandler);
   }
 }
