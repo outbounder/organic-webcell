@@ -14,17 +14,8 @@ describe("BundleStyle", function(){
       watchForChanges: false
     }
   };
-  var nameOfClass = ".my-new-style-" + (new Date().getTime());
-  var style = nameOfClass + "{ color: #F00; .my-custom-style(); }";
 
   var bundleStyle = new BundleStyle(plasma, config);
-  
-  it("should write css code in header.less", function(next) {
-    fs.writeFile(__dirname + "/../data/less/src/header.less", style, function(err) {
-      expect(err).toBe(null);
-      next();
-    });
-  });
 
   it("should compile less with default config", function(next){
     plasma.emit(new Chemical({
@@ -32,7 +23,10 @@ describe("BundleStyle", function(){
       code: "index",
     }), function(chemical){
       expect(chemical).toBeDefined();
-      expect(chemical.data).toContain(nameOfClass);
+      expect(chemical.data).toContain(".my-new-style");
+      expect(chemical.data).toContain(".footer");
+      expect(chemical.data).toContain(".footer {\n  margin: 10px;\n  display: block;");
+      fs.unlink(__dirname + "/../data/less/build/styles.css");
       next();
     });
   });
