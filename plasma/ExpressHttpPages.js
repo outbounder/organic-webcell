@@ -69,7 +69,29 @@ module.exports.prototype.mountPages = function(app, config, context, callback){
           self.mountPageRenders(app, url.replace("/index.js", ""), actions, file.replace(".js", ".jade"));
       }
     });
-    self.mountPagesWithoutActions(app, config, context, callback);
+    self.mountPagesWithoutActions(app, config, context, function(){
+      self.mountPagesStyles(app, config, context, callback);
+    });
+  });
+}
+
+module.exports.prototype.mountPagesStyles = function(app, config, context, callback) {
+  var actionsRoot = config.pages;
+  var self = this;
+
+  glob(actionsRoot+"/**/*.less", function(err, files){
+    files.reverse();
+    files.forEach(function(file){
+      var url = file.replace("_", ":").split("\\").join("/").replace(actionsRoot, "");
+      if(config.mount)
+        url = config.mount+url;
+
+      if(file.indexOf("index.less") === -1)
+        self.mountPageStyle(app, url.replace(".less", ""), file);
+      else
+        self.mountPageStyle(app, url.replace("/index.less", ""), file);
+    });
+    if(callback) callback();
   });
 }
 
@@ -86,8 +108,8 @@ module.exports.prototype.mountPageStyle = function(app, url, file) {
   app.get(url, function(req, res){
     self.emit({
       type: "BundleStyle",
-      code: file, 
-      data: _.extend({}, req)
+      style: file, 
+      data: _.extend({}, req),
     }, function(c){
       if(!self.config.debug) {
         var modified = true;
@@ -104,11 +126,11 @@ module.exports.prototype.mountPageStyle = function(app, url, file) {
           res.end();
         } else {
           res.setHeader('last-modified', self.started.toUTCString());
-          res.setHeader("content-type", "text/javascript");
+          res.setHeader("content-type", "text/css");
           res.send(c.data);
         }
       } else {
-        res.setHeader("content-type", "text/javascript");
+        res.setHeader("content-type", "text/css");
         res.send(c.data);
       }
     });

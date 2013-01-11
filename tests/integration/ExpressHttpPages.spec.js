@@ -74,6 +74,7 @@ describe("ExpressHttpPages", function(){
       expect(mockupApp.routes.get["/:child"]).toBeDefined();
       expect(mockupApp.routes.get["/code.js"]).toBeDefined();
       expect(mockupApp.routes.get["/:child/testPage4/code.js"]).toBeDefined();
+      expect(mockupApp.routes.get["/testPage1/style.css"]).toBeDefined();
       next();
     });
   });
@@ -92,6 +93,8 @@ describe("ExpressHttpPages", function(){
     mockupApp.routes.get["/code.js"]({}, mockRes);
     expect(mockRes.lastSend).toBe(true);
     mockupApp.routes.get["/:child/testPage4/code.js"]({}, mockRes);
+    expect(mockRes.lastSend).toBe(true);
+    mockupApp.routes.get["/testPage1/style.css"]({}, mockRes);
     expect(mockRes.lastSend).toBe(true);
     next();
   })
