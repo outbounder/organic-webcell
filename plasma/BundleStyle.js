@@ -21,6 +21,8 @@ module.exports = function BundleStyle(plasma, config){
     this.on("BundleStyle", function(chemical, sender, callback) {
         
         var target = (chemical.root || config.root || "")+(chemical.style || config.style);
+        if(chemical.style && chemical.style.indexOf(".less") !== -1) // not very good idea
+            target = chemical.style;
 
         // get the type of the bundle by chemical, config or extension name of the target
         var type = chemical.styleType || config.styleType || path.extname(target);
