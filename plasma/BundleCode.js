@@ -27,9 +27,9 @@ module.exports = function BundleCode(plasma, config){
   
   this.on("BundleCode", function(chemical, sender, callback){
 
-    var target = (chemical.root || config.root || "")+(chemical.code || config.code)+".js";
-    if(chemical.code && chemical.code.indexOf(".js") !== -1)
-      target = chemical.code;
+    var target = (chemical.root || config.root || "")+(chemical.code || config.code);
+    if(target.indexOf(".js") === -1)
+      target += ".js";
     
     if(cache[target] && config.useCache) {
       chemical.data = cache[target];
