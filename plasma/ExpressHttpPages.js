@@ -243,6 +243,7 @@ module.exports.prototype.applyHelpers = function(template, req, res) {
 
     if(path && path.indexOf("/") != 0)
       path = process.cwd()+"/"+path;
+
     self.emit(_.extend({
       type: "RenderPage",
       page: path || template

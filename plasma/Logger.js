@@ -2,8 +2,7 @@ var util = require("util");
 var Organel = require("organic").Organel;
 
 var winston = require("winston");
-var winston_mongodb = require('winston-mongodb').MongoDB;
-var winston_amon = require('winston-amon').Amon;
+
 
 module.exports = function Logger(plasma, config){
   Organel.call(this, plasma);
@@ -14,6 +13,7 @@ module.exports = function Logger(plasma, config){
   });
 
   if(config.mongo && config.mongo.enabled) {
+    var winston_mongodb = require('winston-mongodb').MongoDB;
     logger.add(winston_mongodb, {
       handleExceptions: true,
       safe:true,
@@ -24,6 +24,7 @@ module.exports = function Logger(plasma, config){
   }
 
   if(config.amon && config.amon.enabled){
+    var winston_amon = require('winston-amon').Amon;
     logger.add(winston_amon, {
       level: config.amon.logLevel
     });

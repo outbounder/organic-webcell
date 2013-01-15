@@ -21,6 +21,8 @@ module.exports = function RenderPage(plasma, config){
   this.on("RenderPage", function(chemical, sender, callback){
 
     var target = (chemical.root || config.root || "")+(chemical.page || config.page)+".jade";
+    if(chemical.page && chemical.page.indexOf(".jade") !== -1)
+      target = chemical.page;
 
     if(!self.files[target] || !config.useCache){
       fs.readFile(target, function(err, fileData){
