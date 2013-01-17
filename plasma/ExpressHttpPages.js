@@ -86,10 +86,10 @@ module.exports.prototype.mountPagesStyles = function(app, config, context, callb
       if(config.mount)
         url = config.mount+url;
 
-      if(file.indexOf("index.less") === -1)
+      if(file.indexOf("index.jade.less") === -1)
         self.mountPageStyle(app, url.replace(".less", ""), file);
       else
-        self.mountPageStyle(app, url.replace("/index.less", ""), file);
+        self.mountPageStyle(app, url.replace("/index.jade.less", ""), file);
     });
     if(callback) callback();
   });
