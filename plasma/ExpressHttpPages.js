@@ -52,7 +52,7 @@ module.exports.prototype.mountPages = function(app, config, context, callback){
   glob(actionsRoot+"/**/*.js", function(err, files){
     files.reverse();
     files.forEach(function(file){
-      var url = file.replace("_", ":").split("\\").join("/").replace(actionsRoot, "");
+      var url = file.replace("_", ":").split("\\").join("/").replace(actionsRoot.split("\\").join("/"), "");
       if(config.mount)
         url = config.mount+url;
 
@@ -82,7 +82,7 @@ module.exports.prototype.mountPagesStyles = function(app, config, context, callb
   glob(actionsRoot+"/**/*.less", function(err, files){
     files.reverse();
     files.forEach(function(file){
-      var url = file.replace("_", ":").split("\\").join("/").replace(actionsRoot, "");
+      var url = file.replace("_", ":").split("\\").join("/").replace(actionsRoot.split("\\").join("/"), "");
       if(config.mount)
         url = config.mount+url;
 
@@ -145,7 +145,7 @@ module.exports.prototype.mountPagesWithoutActions = function(app, config, contex
     files.reverse();
     files.forEach(function(file){
       if(!fs.existsSync(file.replace(".jade", ".js"))) {
-        var url = file.replace("_", ":").split("\\").join("/").replace(actionsRoot, "");
+        var url = file.replace("_", ":").split("\\").join("/").replace(actionsRoot.split("\\").join("/"), "");
         if(config.mount)
           url = config.mount+url;
 
