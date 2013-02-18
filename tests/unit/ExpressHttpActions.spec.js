@@ -41,12 +41,7 @@ describe("ExpressHttpActions", function(){
   var actions = new ExpressHttpActions(plasma, config);
   
   it("mounts actions to HttpServer properly", function(next){
-    plasma.emit(new Chemical({
-      type: "HttpServer",
-      data: {
-        app: mockupApp
-      }
-    }), null, function(){
+    plasma.once("ExpressHttpActions", function(){
       expect(mockupApp.routes.all["*"]).toBeDefined();
       expect(mockupApp.routes.get["/"]).toBeDefined();
       expect(mockupApp.routes.post["/"]).toBeDefined();
@@ -58,6 +53,12 @@ describe("ExpressHttpActions", function(){
       expect(mockupApp.routes.get["/:child"]).toBeDefined();
       next();
     });
+    plasma.emit(new Chemical({
+      type: "HttpServer",
+      data: {
+        app: mockupApp
+      }
+    }));
   });
 
   it("mounted actions are working", function(next){

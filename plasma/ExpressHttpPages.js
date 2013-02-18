@@ -4,95 +4,113 @@ var glob = require('glob');
 var path = require("path");
 var _ = require("underscore");
 var fs = require("fs");
+var first = require('first');
 
-module.exports = function MountHttpPages(plasma, config){
+var Actions = require("../lib/Actions");
+var Context = require("../lib/Context");
+var DirectoryTree = require("../lib/DirectoryTree");
+
+module.exports = function ExpressHttpPages(plasma, config){
   Organel.call(this, plasma);
+
+  var context = {
+    plasma: this.plasma
+  };
+  var self = this;
+
+  if(config.cwd)
+    for(var key in config.cwd)
+      config[key] = process.cwd()+config.cwd[key];
 
   this.config = config;
   this.started = new Date((new Date()).toUTCString());
 
   // bootstrap all actions once httpserver is ready
-  this.on("HttpServer", function(chemical, sender, callback){
+  this.on("HttpServer", function(chemical){
     var app = chemical.data.app;
-    var context = {
-      plasma: this.plasma
-    };
-    var self = this;
-
-    if(config.cwd)
-      for(var key in config.cwd)
-        config[key] = process.cwd()+config.cwd[key];
-    
     if(config.pageHelpers) {
-      glob(config.pageHelpers+"/**/*.js", function(err, files){
-        files.forEach(function(file){
-          context[path.basename(file, path.extname(file))] = require(file);
+      Context.scan({
+        root: config.pageHelpers,
+        extname: ".js"
+      }, context, function(err){
+        self.mountPageActions(app, config, context, function(){
+          self.emit("ExpressHttpPages", self);
         });
-        self.mountPages(app, config, context, function(){
-          if(callback) return callback();
-          self.emit("HttpServerPages");
-        });
-      });
+      })
     } else 
-      self.mountPages(app, config, context, function(){
-        if(callback) return callback();
-        self.emit("HttpServerPages");
+      self.mountPageActions(app, config, context, function(){
+        self.emit("ExpressHttpPages", self);
       });
-
     return false;
   });
 }
 
 util.inherits(module.exports, Organel);
 
-module.exports.prototype.mountPages = function(app, config, context, callback){
+module.exports.prototype.mountPageActions = function(app, config, context, callback){
   var actionsRoot = config.pages;
   var self = this;
 
-  glob(actionsRoot+"/**/*.js", function(err, files){
-    files.reverse();
-    files.forEach(function(file){
-      var url = file.replace("_", ":").split("\\").join("/").replace(actionsRoot.split("\\").join("/"), "");
-      if(config.mount)
-        url = config.mount+url;
-
-      if(file.indexOf(".jade.js") !== -1) {
-        if(file.indexOf("index.jade.js") === -1)
-          self.mountPageCode(app, url.replace(".jade.js", ""), file);
-        else
-          self.mountPageCode(app, url.replace("/index.jade.js", ""), file);
-      } else {
-        var actions = require(file).call(context, config);
-        if(file.indexOf("index.js") === -1)
-          self.mountPageRenders(app, url.replace(".js", ""), actions, file.replace(".js", ".jade"));
-        else
-          self.mountPageRenders(app, url.replace("/index.js", ""), actions, file.replace(".js", ".jade"));
-      }
-    });
-    self.mountPagesWithoutActions(app, config, context, function(){
-      self.mountPagesStyles(app, config, context, callback);
-    });
-  });
-}
-
-module.exports.prototype.mountPagesStyles = function(app, config, context, callback) {
-  var actionsRoot = config.pages;
-  var self = this;
-
-  glob(actionsRoot+"/**/*.less", function(err, files){
-    files.reverse();
-    files.forEach(function(file){
-      var url = file.replace("_", ":").split("\\").join("/").replace(actionsRoot.split("\\").join("/"), "");
-      if(config.mount)
-        url = config.mount+url;
-
-      if(file.indexOf("index.jade.less") === -1)
-        self.mountPageStyle(app, url.replace(".less", ""), file);
-      else
-        self.mountPageStyle(app, url.replace("/index.jade.less", ""), file);
-    });
+  first(function(){
+    self.actions = new DirectoryTree();
+    self.actions.scan({
+      targetsRoot: actionsRoot,
+      targetExtname: ".js",
+      mount: config.mount,
+      indexName: "index.js",
+      excludePattern: ".jade.js"
+    }, function(file, url, next){
+      Actions.map(require(file).call(context, config), url, function(method, url, handler){
+        self.mountPageAction(app, method, url, handler, file.replace(".js", ".jade"));
+      });
+      next();
+    }, this);
+  })
+  .whilst(function(){
+    self.pagesWithoutActions = new DirectoryTree();
+    self.pagesWithoutActions.scan({
+      targetsRoot: actionsRoot,
+      targetExtname: ".jade",
+      mount: config.mount,
+      indexName: "index.jade"
+    }, function(file, url, next){
+      fs.exists(file.replace(".jade", ".js"), function(exists){
+        if(!exists) {
+          self.mountPageAction(app, "GET", url, function(req, res){
+            res.sendPage(); 
+          }, file);
+        }
+        next();
+      })
+    }, this);
+  })
+  .whilst(function(){
+    self.styles = new DirectoryTree();
+    self.styles.scan({
+      targetsRoot: actionsRoot,
+      targetExtname: ".less",
+      mount: config.mount,
+      indexName: "index.jade.less"
+    }, function(file, url, next){
+      self.mountPageStyle(app, url, file);
+      next();
+    }, this);
+  })
+  .whilst(function(){
+    self.codes = new DirectoryTree();
+    self.codes.scan({
+      targetsRoot: actionsRoot,
+      targetExtname: ".jade.js",
+      mount: config.mount,
+      indexName: "index.jade.js"
+    }, function(file, url, next){
+      self.mountPageCode(app, url, file);
+      next();
+    }, this);
+  })
+  .then(function(){
     if(callback) callback();
-  });
+  })
 }
 
 module.exports.prototype.mountPageStyle = function(app, url, file) {
@@ -104,64 +122,22 @@ module.exports.prototype.mountPageStyle = function(app, url, file) {
 
   if(this.config.log)
     console.log("pagestyle GET", url);
+  if(this.config.prebuildAssets)
+    self.emit({
+      type:"BundleStyle",
+      style: file
+    }, function(){
+      if(self.config.log)
+        console.log("pagestyle prebuild done", url);
+    })
 
   app.get(url, function(req, res){
-    self.emit({
+    self.emitAndSend({
       type: "BundleStyle",
       style: file, 
       data: _.extend({}, req),
-    }, function(c){
-      if(!self.config.debug) {
-        var modified = true;
-        try {
-          var mtime = new Date(req.headers['if-modified-since']);
-          if (mtime.getTime() >= self.started.getTime()) {
-            modified = false;
-          }
-        } catch (e) {
-          console.warn(e);
-        }
-        if (!modified) {
-          res.writeHead(304);
-          res.end();
-        } else {
-          res.setHeader('last-modified', self.started.toUTCString());
-          res.setHeader("content-type", "text/css");
-          res.send(c.data);
-        }
-      } else {
-        res.setHeader("content-type", "text/css");
-        res.send(c.data);
-      }
-    });
+    }, req, res, "text/css");
   })
-}
-
-module.exports.prototype.mountPagesWithoutActions = function(app, config, context, callback) {
-  var actionsRoot = config.pages;
-  var self = this;
-
-  glob(actionsRoot+"/**/*.jade", function(err, files){
-    files.reverse();
-    files.forEach(function(file){
-      if(!fs.existsSync(file.replace(".jade", ".js"))) {
-        var url = file.replace("_", ":").split("\\").join("/").replace(actionsRoot.split("\\").join("/"), "");
-        if(config.mount)
-          url = config.mount+url;
-
-        var actions = {
-          "GET": function(req, res) {
-            res.sendPage();
-          }
-        }
-        if(file.indexOf("index.jade") === -1)
-          self.mountPageRenders(app, url.replace(".jade", ""), actions, file);
-        else
-          self.mountPageRenders(app, url.replace("/index.jade", ""), actions, file);
-      }
-    });
-    if(callback) callback();
-  });
 }
 
 module.exports.prototype.mountPageCode = function(app, url, file) {
@@ -173,59 +149,53 @@ module.exports.prototype.mountPageCode = function(app, url, file) {
 
   if(this.config.log)
     console.log("pagecode GET", url);
+  if(this.config.prebuildAssets)
+    self.emit({
+      type:"BundleCode",
+      code: file
+    }, function(){
+      if(self.config.log)
+        console.log("pagecode prebuild done", url);
+    })
 
   app.get(url, function(req, res){
-    self.emit({
+    self.emitAndSend({
       type: "BundleCode",
       code: file, 
       data: _.extend({}, req)
-    }, function(c){
-      if(!self.config.debug) {
-        var modified = true;
-        try {
-          var mtime = new Date(req.headers['if-modified-since']);
-          if (mtime.getTime() >= self.started.getTime()) {
-            modified = false;
-          }
-        } catch (e) {
-          console.warn(e);
-        }
-        if (!modified) {
-          res.writeHead(304);
-          res.end();
-        } else {
-          res.setHeader('last-modified', self.started.toUTCString());
-          res.setHeader("content-type", "text/javascript");
-          res.send(c.data);
-        }
-      } else {
-        res.setHeader("content-type", "text/javascript");
-        res.send(c.data);
-      }
-    });
-  })
+    }, req, res, "text/javascript");
+  });
 }
 
-module.exports.prototype.mountPageRenders = function(app, root, actions, template) {
-  var root = actions.root || root;
-
-  for(var key in actions) {
-    if(key == "routes") {
-      this.mountHttpPageRenders(app, root,  actions.routes);
-      continue;
+module.exports.prototype.emitAndSend = function(chemical, req, res, contentType) {
+  var self = this;
+  if(!self.config.debug) {
+    var modified = true;
+    try {
+      var mtime = new Date(req.headers['if-modified-since']);
+      if (mtime.getTime() >= self.started.getTime()) {
+        modified = false;
+      }
+    } catch (e) {
+      console.warn(e);
     }
-
-    var parts = key.split(" ");
-    var method = parts.shift();
-    var url = parts.pop();
-    var actionHandler = actions[key];
-    if(typeof actionHandler === "string") {
-      actionHandler = actions[actionHandler];
-      if(typeof actionHandler !== "function" && !Array.isArray(actionHandler))
-        throw new Error(actionHandler+" was not found");
+    if (!modified) {
+      res.writeHead(304);
+      res.end();
+      return;
     }
-    this.mountPageRender(app, method, root+(url?url:""), actionHandler, template);
   }
+
+  self.emit(chemical, function(c){
+    if(!self.config.debug) {
+      res.setHeader('last-modified', self.started.toUTCString());
+      res.setHeader("content-type", contentType);
+      res.send(c.data);
+    } else {
+      res.setHeader("content-type", contentType);
+      res.send(c.data);
+    }
+  });
 }
 
 module.exports.prototype.applyHelpers = function(template, req, res) {
@@ -256,7 +226,7 @@ module.exports.prototype.applyHelpers = function(template, req, res) {
   }
 }
 
-module.exports.prototype.mountPageRender = function(app, method, url, action, template) {
+module.exports.prototype.mountPageAction = function(app, method, url, action, template) {
   var self = this;
 
   if(url == "")
@@ -278,7 +248,7 @@ module.exports.prototype.mountPageRender = function(app, method, url, action, te
   }
   
   if(this.config.log)
-    console.log("page", method, url);
+    console.log("pageaction", method, url);
   
   switch(method) {
     case "GET":

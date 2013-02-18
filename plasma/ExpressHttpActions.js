@@ -4,59 +4,60 @@ var glob = require('glob');
 var path = require("path");
 var _ = require("underscore");
 
-module.exports = function HttpActions(plasma, config){
+var Actions = require("../lib/Actions");
+var Context = require("../lib/Context");
+var DirectoryTree = require("../lib/DirectoryTree");
+
+module.exports = function ExpressHttpActions(plasma, config){
   Organel.call(this, plasma);
+
+  var context = {
+    plasma: this.plasma
+  };
+  var self = this;
+
+  if(config.cwd)
+    for(var key in config.cwd)
+      config[key] = process.cwd()+config.cwd[key];
   
   this.config = config;
 
-  // bootstrap all actions once httpserver is ready
-  this.on("HttpServer", function(chemical, sender, callback){
+  this.on("HttpServer", function(chemical){
     var app = chemical.data.app;
-    var context = {};
-    var self = this;
-
-    if(config.cwd)
-      for(var key in config.cwd)
-        config[key] = process.cwd()+config.cwd[key];
-    
     if(config.actionHelpers) {
-      glob(config.actionHelpers+"/**/*.js", function(err, files){
-        files.forEach(function(file){
-          context[path.basename(file, path.extname(file))] = require(file);
+      Context.scan({
+        root: config.actionHelpers,
+        extname: ".js"
+      }, context, function(err){
+        self.mountActions(app, config, context, function(){
+          self.emit("ExpressHttpActions", self);
         });
-        self.loadActions(app, config, context, function(){
-          if(callback) return callback();
-          self.emit("HttpServerActions");
-        });
-      });
+      })
     } else 
-      self.loadActions(app, config, context, function(){
-        if(callback) return callback();
-        self.emit("HttpServerActions");
+      self.mountActions(app, config, context, function(){
+        self.emit("ExpressHttpActions", self);
       });
-
     return false;
   });
 }
 
 util.inherits(module.exports, Organel);
 
-module.exports.prototype.loadActions = function(app, config, context, callback){
-  var actionsRoot = config.actions.split("\\").join("/");
+module.exports.prototype.mountActions = function(app, config, context, callback){
   var self = this;
-  glob(actionsRoot+"/**/*.js", function(err, files){
-    files.reverse();
-    files.forEach(function(file){
-      var url = file.replace("_", ":").split("\\").join("/").replace(actionsRoot, "");
-      if(config.mount)
-        url = config.mount+url;
-      if(file.indexOf("/index.js") === -1)
-        self.exportHttpActions(app, url.replace(".js", ""), require(file).call(context, config));
-      else
-        self.exportHttpActions(app, url.replace("/index.js", ""), require(file).call(context, config));
+  var actionsRoot = config.actions;
+  self.actions = new DirectoryTree();
+  self.actions.scan({
+    targetsRoot: actionsRoot,
+    targetExtname: ".js",
+    mount: config.mount,
+    indexName: "index.js"
+  }, function(file, url, next){
+    Actions.map(require(file).call(context, config), url, function(method, url, handler){
+      self.mountAction(app, method, url, handler);
     });
-    if(callback) callback();
-  });
+    next();
+  }, callback);
 }
 
 var request = function(req) {
@@ -73,7 +74,7 @@ var response = function(res) {
   }
 };
 
-module.exports.prototype.registerAction = function(app, method, url, action) {
+module.exports.prototype.mountAction = function(app, method, url, action) {
   if(url == "")
     url = "/";
   var args = [url];
@@ -113,25 +114,3 @@ module.exports.prototype.registerAction = function(app, method, url, action) {
     break;
   }
 };
-
-module.exports.prototype.exportHttpActions = function(app, root, actions) {
-  var root = actions.root || root;
-
-  for(var key in actions) {
-    if(key == "routes") {
-      this.exportHttpActions(app, root,  actions.routes);
-      continue;
-    }
-
-    var parts = key.split(" ");
-    var method = parts.shift();
-    var url = parts.pop();
-    var actionHandler = actions[key];
-    if(typeof actionHandler === "string") {
-      actionHandler = actions[actionHandler];
-      if(typeof actionHandler !== "function" && !Array.isArray(actionHandler))
-        throw new Error(actionHandler+" was not found");
-    }
-    this.registerAction(app, method, root+(url?url:""), actionHandler);
-  }
-}

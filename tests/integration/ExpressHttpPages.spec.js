@@ -56,12 +56,7 @@ describe("ExpressHttpPages", function(){
   var pages = new ExpressHttpPages(plasma, config);
   
   it("mounts pages to HttpServer properly", function(next){
-    plasma.emit(new Chemical({
-      type: "HttpServer",
-      data: {
-        app: mockupApp
-      }
-    }), null, function(){
+    plasma.once("ExpressHttpPages", function(){
       expect(mockupApp.routes.all["*"]).toBeDefined();
       expect(mockupApp.routes.get["/"]).toBeDefined();
       expect(mockupApp.routes.post["/"]).toBeDefined();
@@ -77,6 +72,12 @@ describe("ExpressHttpPages", function(){
       expect(mockupApp.routes.get["/testPage1/style.css"]).toBeDefined();
       next();
     });
+    plasma.emit(new Chemical({
+      type: "HttpServer",
+      data: {
+        app: mockupApp
+      }
+    }));
   });
 
   it("mounted pages are working", function(next){
