@@ -8,6 +8,9 @@ describe("RenderPage", function(){
   var config = {
     "cwd": {
       "root": "/tests/data/client/"  
+    },
+    jadeConfig: {
+      pretty: true
     }
   };
 

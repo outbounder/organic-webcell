@@ -38,16 +38,6 @@ module.exports = function BundleCode(plasma, config){
 
     // combine
     b = browserify({debug: config.debug});
-    b.register(".jade", function(body, file){
-      var compiled = jade.compile(body, {
-        filename: file
-      })(chemical.data || chemical);
-      var escaped = "module.exports = '"+compiled.replace(/[\']/g, "\\'").replace(/[\r]/g, "").replace(/[\n]/g, "\\n")+"';";
-      return escaped;
-    });
-    b.register(".raw", function(body, file){
-      return "module.exports = '"+body.replace(/[\']/g, "\\'").replace(/[\r]/g, "").replace(/[\n]/g, "\\n")+"';";
-    });
 
     if(config.plugins) {
       _.each(config.plugins, function(pluginConfig){

@@ -31,9 +31,9 @@ module.exports = function RenderPage(plasma, config){
           callback(err);
           return;
         }
-        self.files[target] = jade.compile(fileData, {
+        self.files[target] = jade.compile(fileData, _.extend({
           filename: target
-        });
+        }, chemical.jadeConfig || config.jadeConfig || {}));
         chemical.data = self.files[target](chemical);
         callback(chemical);
       });
