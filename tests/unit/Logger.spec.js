@@ -1,5 +1,5 @@
 var Chemical = require("organic").Chemical;
-var Logger = require("../../plasma/Logger");
+var Logger = require("../../membrane/Logger");
 var Plasma = require("organic").Plasma;
 
 describe("Logger", function(){
@@ -10,8 +10,8 @@ describe("Logger", function(){
       root: "/tests/data/less/"
     },
     "listenUncaughtExceptions": true,
-    "useClim": true,
-    "useWinston": true
+    "prefixConsoleWithTimestamps": true,
+    "attachHttpServerErrorMiddleware": true
   };
 
   var logger = new Logger(plasma, config);
@@ -24,6 +24,24 @@ describe("Logger", function(){
       expect(chemical instanceof Error).toBe(false);
       next();
     });
+  });
+
+  it("should attach to HttpServer chemical error middleware", function(next){
+    plasma.emit(new Chemical({
+      type: "HttpServer",
+      data: {
+        app: {
+          use: function(callback) {
+            expect(callback).toBeDefined();
+            next();
+          }
+        }
+      }
+    }))
+  })
+
+  it("should trap exception", function(){
+    process.emit("uncaughtException", new Error("custom exception"));
   });
 
 });
