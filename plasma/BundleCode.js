@@ -24,6 +24,7 @@ module.exports = function BundleCode(plasma, config){
     for(var key in config.cwd)
       config[key] = process.cwd()+config.cwd[key];
   this.config = config;
+  var root = this.config.root || process.cwd();
   
   this.on("BundleCode", function(chemical, sender, callback){
 
@@ -45,7 +46,7 @@ module.exports = function BundleCode(plasma, config){
         if(pluginConfig.arguments)
           pluginConfig.arguments = _.clone(pluginConfig.arguments);
 
-        var plugin = require(process.cwd()+pluginConfig.source);
+        var plugin = require(root+pluginConfig.source);
         b.use(plugin.apply(plugin, pluginConfig.arguments));
       });
     }
