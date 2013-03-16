@@ -66,7 +66,7 @@ module.exports.prototype.mountActions = function(io, config, context, callback){
       if(Array.isArray(handler))
         throw new Error("not supported")
       if(self.config.log)
-        console.log("io action", method + " " url);
+        console.log("io action", method + " " + url);
       self.actionsList.push({ event: method + " " + url, handler: handler});
     });
     next();
