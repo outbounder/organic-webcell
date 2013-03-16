@@ -63,25 +63,16 @@ var parseLessFile = function(input, options, callback){
             strictImports: options.strictImports || false,
             dumpLineNumbers: options.dumpLineNumbers || false
         }).parse(data, function (err, tree) {
-            if (err) {
-                throw err;
-                return;
+            if (err) throw err;
+            var css = tree.toCSS({
+                compress: options.compress || false,
+                yuicompress: options.yuicompress || false
+            });
+            if (options.output) {
+                fs.writeFileSync(options.output, css, 'utf8');
+                callback(err, true);
             } else {
-                try {
-                    var css = tree.toCSS({
-                        compress: options.compress || false,
-                        yuicompress: options.yuicompress || false
-                    });
-                    if (options.output) {
-                        fs.writeFileSync(options.output, css, 'utf8');
-                        callback(err, true);
-                    } else {
-                        callback(err, css);
-                    }
-                } catch (e) {
-                    callback(e);
-                    return;
-                }
+                callback(err, css);
             }
         });
     };
