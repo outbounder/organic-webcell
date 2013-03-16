@@ -26,7 +26,10 @@ module.exports = function Logger(plasma, config){
 
   if(config.listenUncaughtExceptions)
     process.addListener("uncaughtException", function(err) {
-      logger.error(err.stack);
+      if(err.stack)
+        logger.error(err.stack);
+      else
+        logger.error(err);
     });
 }
 
