@@ -23,6 +23,21 @@ module.exports = function ExpressHttpPages(plasma, config){
       config[key] = process.cwd()+config.cwd[key];
 
   this.config = config;
+
+  this.config.action = this.config.action || {};
+  this.config.action.extname = this.config.action.extname || ".js"
+
+  this.config.page = this.config.page || {}
+  this.config.page.extname = this.config.page.extname || ".jade";
+
+  this.config.pageStyle = this.config.pageStyle || {};
+  this.config.pageStyle.extname = this.config.pageStyle.extname || ".less";
+  this.config.pageStyle.urlName = this.config.pageStyle.urlName || "/style.css";
+  
+  this.config.pageCode = this.config.pageCode || {};
+  this.config.pageCode.extname = this.config.pageCode.extname || ".jade.js";
+  this.config.pageCode.urlName = this.config.pageCode.urlName || "/code.js";
+
   this.started = new Date((new Date()).toUTCString());
 
   // bootstrap all actions once httpserver is ready
@@ -55,13 +70,14 @@ module.exports.prototype.mountPageActions = function(app, config, context, callb
     self.actions = new DirectoryTree();
     self.actions.scan({
       targetsRoot: actionsRoot,
-      targetExtname: ".js",
+      targetExtname: config.action.extname,
       mount: config.mount,
-      indexName: "index.js",
-      excludePattern: ".jade.js"
+      indexName: "index"+config.action.extname,
+      excludePattern: config.pageCode.extname
     }, function(file, url, next){
       Actions.map(require(file).call(context, config), url, function(method, url, handler){
-        self.mountPageAction(app, method, url, handler, file.replace(".js", ".jade"));
+        var templatePath = file.replace(config.action.extname, config.page.extname);
+        self.mountPageAction(app, method, url, handler, templatePath);
       });
       next();
     }, this);
@@ -70,12 +86,14 @@ module.exports.prototype.mountPageActions = function(app, config, context, callb
     self.pagesWithoutActions = new DirectoryTree();
     self.pagesWithoutActions.scan({
       targetsRoot: actionsRoot,
-      targetExtname: ".jade",
+      targetExtname: config.page.extname,
       mount: config.mount,
-      indexName: "index.jade"
+      indexName: "index"+config.page.extname
     }, function(file, url, next){
-      fs.exists(file.replace(".jade", ".js"), function(exists){
-        if(!exists) {
+      var actionPath = file.replace(config.page.extname, config.action.extname);
+      fs.exists(actionPath, function(exists){
+        if(!exists) { 
+          // action handler was not found, so mount a page with standard action
           self.mountPageAction(app, "GET", url, function(req, res){
             res.sendPage(); 
           }, file);
@@ -88,9 +106,9 @@ module.exports.prototype.mountPageActions = function(app, config, context, callb
     self.styles = new DirectoryTree();
     self.styles.scan({
       targetsRoot: actionsRoot,
-      targetExtname: ".less",
+      targetExtname: config.pageStyle.extname,
       mount: config.mount,
-      indexName: "index.jade.less"
+      indexName: "index"+config.pageStyle.extname
     }, function(file, url, next){
       self.mountPageStyle(app, url, file);
       next();
@@ -100,9 +118,9 @@ module.exports.prototype.mountPageActions = function(app, config, context, callb
     self.codes = new DirectoryTree();
     self.codes.scan({
       targetsRoot: actionsRoot,
-      targetExtname: ".jade.js",
+      targetExtname: config.pageCode.extname,
       mount: config.mount,
-      indexName: "index.jade.js"
+      indexName: "index"+config.pageCode.extname
     }, function(file, url, next){
       self.mountPageCode(app, url, file);
       next();
@@ -116,9 +134,9 @@ module.exports.prototype.mountPageActions = function(app, config, context, callb
 module.exports.prototype.mountPageStyle = function(app, url, file) {
   var self = this;
   if(url == "")
-    url = "/style.css";
+    url = this.config.pageStyle.urlName;
   else
-    url += "/style.css";
+    url += this.config.pageStyle.urlName;
 
   if(this.config.log)
     console.log("pagestyle GET", url);
@@ -143,9 +161,9 @@ module.exports.prototype.mountPageStyle = function(app, url, file) {
 module.exports.prototype.mountPageCode = function(app, url, file) {
   var self = this;
   if(url == "")
-    url = "/code.js";
+    url = this.config.pageCode.urlName;
   else
-    url += "/code.js";
+    url += this.config.pageCode.urlName;
 
   if(this.config.log)
     console.log("pagecode GET", url);
