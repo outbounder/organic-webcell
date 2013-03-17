@@ -108,7 +108,7 @@ module.exports.prototype.mountPageActions = function(app, config, context, callb
       targetsRoot: actionsRoot,
       targetExtname: config.pageStyle.extname,
       mount: config.mount,
-      indexName: "index"+config.pageStyle.extname
+      indexName: "index"+config.page.extname+config.pageStyle.extname
     }, function(file, url, next){
       self.mountPageStyle(app, url, file);
       next();
@@ -218,7 +218,11 @@ module.exports.prototype.emitAndSend = function(chemical, req, res, contentType)
 
 module.exports.prototype.applyHelpers = function(template, req, res) {
   var self = this;
-  _.extend(req, this.config);
+
+  // providing config to the req object 
+  // so that all actions can directly use it
+  _.extend(req, self.config);
+
   res.renderPage = function(data, path, callback) {
     if(typeof data == "string") {
       path = data;
@@ -232,10 +236,10 @@ module.exports.prototype.applyHelpers = function(template, req, res) {
     if(path && path.indexOf("/") != 0)
       path = process.cwd()+"/"+path;
 
-    self.emit(_.extend({
+    self.emit(_.extend(req, {
       type: "RenderPage",
       page: path || template
-    }, req, data), callback);
+    }, data), callback);
   }
   res.sendPage = function(data, path){
     res.renderPage(data, path, function(c){

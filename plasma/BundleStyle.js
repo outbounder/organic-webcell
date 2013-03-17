@@ -36,7 +36,10 @@ module.exports = function BundleStyle(plasma, config){
                     var lessConfig = chemical.less || config.less || {};
                     lessConfig.rootpath = path.dirname(target);
                     fs.readFile(target, 'utf8', parseLessFile(target, lessConfig, function(err, css){
-                        if(err) return callback(err);
+                        if(err) {
+                            err.message += " while trying to parse "+target;
+                            throw err;
+                        }
                         chemical.data = cache[target] = css;
                         callback(chemical);
                     }));

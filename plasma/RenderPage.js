@@ -19,7 +19,6 @@ module.exports = function RenderPage(plasma, config){
   this.config = config;
 
   this.on("RenderPage", function(chemical, sender, callback){
-
     var target = (chemical.root || config.root || "")+(chemical.page || config.page);
     if(target.indexOf(".jade") === -1)
       target += ".jade";
@@ -28,8 +27,7 @@ module.exports = function RenderPage(plasma, config){
       fs.readFile(target, function(err, fileData){
         if(err){
           err.message += " while trying to render "+target;
-          callback(err);
-          return;
+          throw err;
         }
         self.files[target] = jade.compile(fileData, _.extend({
           filename: target
