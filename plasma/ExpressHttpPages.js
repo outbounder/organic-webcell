@@ -233,7 +233,7 @@ module.exports.prototype.applyHelpers = function(template, req, res) {
       path = undefined;
     }
 
-    if(path && path.indexOf("/") != 0)
+    if(path && path.indexOf("/") != 0 && path.indexOf(":\\") != 1)
       path = process.cwd()+"/"+path;
 
     self.emit(_.extend(req, {
