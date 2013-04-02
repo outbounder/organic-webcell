@@ -39,6 +39,8 @@ module.exports = function ExpressHttpPages(plasma, config){
   this.config.pageCode.urlName = this.config.pageCode.urlName || "/code.js";
 
   this.started = new Date((new Date()).toUTCString());
+  this.prebuildAssetsDestMap = {};
+  this.prebuildAssetsCounter = 0;
 
   // bootstrap all actions once httpserver is ready
   this.on("HttpServer", function(chemical){
@@ -131,8 +133,20 @@ module.exports.prototype.mountPageActions = function(app, config, context, callb
   })
 }
 
+module.exports.prototype.trackPrebuildAsset = function(url, destination){
+  this.prebuildAssetsCounter += 1;
+  this.prebuildAssetsDestMap[url] = destination;
+}
+
+module.exports.prototype.prebuildAssetDone = function(url){
+  this.prebuildAssetsCounter -= 1; 
+  if(this.prebuildAssetsCounter == 0)
+    this.emit("ExpressHttpPagesAssetsPacks", this.prebuildAssetsDestMap);
+}
+
 module.exports.prototype.mountPageStyle = function(app, url, file) {
   var self = this;
+
   if(url == "")
     url = this.config.pageStyle.urlName;
   else
@@ -140,21 +154,35 @@ module.exports.prototype.mountPageStyle = function(app, url, file) {
 
   if(this.config.log)
     console.log("pagestyle GET", url);
+
   if(this.config.prebuildAssets)
+    var dest = self.config.assetsBuildDir?path.join(self.config.assetsBuildDir,url.split("/").join("-")):"memory";
+    self.trackPrebuildAsset(url, dest);
     self.emit({
       type:"BundleStyle",
       style: file
-    }, function(){
+    }, function(c){
+      if(self.config.assetsBuildDir) {
+        fs.writeFileSync(dest, c.data);
+      }
       if(self.config.log)
         console.log("pagestyle prebuild done", url);
+       self.prebuildAssetDone(url);
     })
 
   app.get(url, function(req, res){
-    self.emitAndSend({
-      type: "BundleStyle",
-      style: file, 
-      data: _.extend({}, req),
-    }, req, res, "text/css");
+    if(self.prebuildAssetsDestMap[url] && self.prebuildAssetsDestMap[url] != "memory") {
+      if(self.sendCachedWhenUptodate(req, res))
+        return;
+      fs.readFile(self.prebuildAssetsDestMap[url], function(err, data){
+        self.sendAssetWithCacheData(req, res, data.toString(), "text/css");
+      })
+    } else
+      self.emitAndSend({
+        type: "BundleStyle",
+        style: file, 
+        data: _.extend({}, req),
+      }, req, res, "text/css");
   })
 }
 
@@ -167,31 +195,44 @@ module.exports.prototype.mountPageCode = function(app, url, file) {
 
   if(this.config.log)
     console.log("pagecode GET", url);
-  if(this.config.prebuildAssets)
+  if(this.config.prebuildAssets) {
+    var dest = self.config.assetsBuildDir?path.join(self.config.assetsBuildDir,url.split("/").join("-")):"memory";
+    self.trackPrebuildAsset(url, dest);
     self.emit({
       type:"BundleCode",
       code: file
-    }, function(){
+    }, function(c){
+      if(self.config.assetsBuildDir) {
+        fs.writeFileSync(dest, c.data);
+      }
       if(self.config.log)
         console.log("pagecode prebuild done", url);
+      self.prebuildAssetDone(url);
     })
+  }
 
   app.get(url, function(req, res){
-    self.emitAndSend({
-      type: "BundleCode",
-      code: file, 
-      data: _.extend({}, req)
-    }, req, res, "text/javascript");
+    if(self.prebuildAssetsDestMap[url] && self.prebuildAssetsDestMap[url] != "memory") {
+      if(self.sendCachedWhenUptodate(req, res))
+        return;
+      fs.readFile(self.prebuildAssetsDestMap[url], function(err, data){
+        self.sendAssetWithCacheData(req, res, data.toString(), "text/javascript");
+      })
+    } else
+      self.emitAndSend({
+        type: "BundleCode",
+        code: file, 
+        data: _.extend({}, req)
+      }, req, res, "text/javascript");
   });
 }
 
-module.exports.prototype.emitAndSend = function(chemical, req, res, contentType) {
-  var self = this;
-  if(!self.config.debug) {
+module.exports.prototype.sendCachedWhenUptodate = function(){
+  if(!this.config.debug) {
     var modified = true;
     try {
       var mtime = new Date(req.headers['if-modified-since']);
-      if (mtime.getTime() >= self.started.getTime()) {
+      if (mtime.getTime() >= this.started.getTime()) {
         modified = false;
       }
     } catch (e) {
@@ -200,19 +241,28 @@ module.exports.prototype.emitAndSend = function(chemical, req, res, contentType)
     if (!modified) {
       res.writeHead(304);
       res.end();
-      return;
+      return true;
     }
   }
+}
 
+module.exports.prototype.sendAssetWithCacheData = function(req, res, data, contentType){
+  if(!this.config.debug) {
+    res.setHeader('last-modified', this.started.toUTCString());
+    res.setHeader("content-type", contentType);
+    res.send(data);
+  } else {
+    res.setHeader("content-type", contentType);
+    res.send(data);
+  }
+}
+
+module.exports.prototype.emitAndSend = function(chemical, req, res, contentType) {
+  var self = this;
+  if(self.sendCachedWhenUptodate(req, res))
+    return;
   self.emit(chemical, function(c){
-    if(!self.config.debug) {
-      res.setHeader('last-modified', self.started.toUTCString());
-      res.setHeader("content-type", contentType);
-      res.send(c.data);
-    } else {
-      res.setHeader("content-type", contentType);
-      res.send(c.data);
-    }
+    self.sendAssetWithCacheData(req, res, c.data, contentType);
   });
 }
 
