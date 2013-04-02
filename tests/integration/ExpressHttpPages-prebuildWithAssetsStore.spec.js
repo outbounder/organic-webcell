@@ -3,6 +3,7 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 25000;
 var ExpressHttpPages = require("../../plasma/ExpressHttpPages");
 var Plasma = require("organic").Plasma;
 var Chemical = require("organic").Chemical;
+var fs = require("fs");
 
 describe("ExpressHttpPages", function(){
   var bundleCodeInvoked = false;
@@ -16,8 +17,7 @@ describe("ExpressHttpPages", function(){
       "assetsBuildDir": "/tests/data/assets-storage"
     },
     debug: true,
-    prebuildAssets: true,
-    log: true
+    prebuildAssets: true
   };
   var mockupApp = {
     routes: {get:{}, put:{}, post:{}, del: {}, all: {}},
@@ -66,13 +66,15 @@ describe("ExpressHttpPages", function(){
     setHeader: function(){}
   }
   
-  it("mounts assets to HttpServer properly", function(next){
+  it("stores assets in assets-store dir", function(next){
     bundleCodeInvoked = false;
     bundleStyleInvoked = false;
     var pages = new ExpressHttpPages(plasma, config);
-    plasma.once("ExpressHttpPagesAssetsPacks", function(){
+    plasma.once("ExpressHttpPagesAssetsPacks", function(c){
       expect(bundleStyleInvoked).toBe(true);
       expect(bundleCodeInvoked).toBe(true);
+      for(var key in c.data)
+        fs.unlink(c.data[key]);
       next();
     });
     plasma.emit(new Chemical({
