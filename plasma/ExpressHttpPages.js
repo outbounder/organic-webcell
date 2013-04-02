@@ -141,7 +141,7 @@ module.exports.prototype.trackPrebuildAsset = function(url, destination){
 module.exports.prototype.prebuildAssetDone = function(url){
   this.prebuildAssetsCounter -= 1; 
   if(this.prebuildAssetsCounter == 0)
-    this.emit("ExpressHttpPagesAssetsPacks", this.prebuildAssetsDestMap);
+    this.emit({type: "ExpressHttpPagesAssetsPacks", data: this.prebuildAssetsDestMap});
 }
 
 module.exports.prototype.mountPageStyle = function(app, url, file) {
@@ -155,8 +155,13 @@ module.exports.prototype.mountPageStyle = function(app, url, file) {
   if(this.config.log)
     console.log("pagestyle GET", url);
 
-  if(this.config.prebuildAssets)
+  if(this.config.prebuildAssets) {
     var dest = self.config.assetsBuildDir?path.join(self.config.assetsBuildDir,url.split("/").join("-")):"memory";
+    if(dest != "memory" && fs.existsSync(dest)) {
+      if(self.config.log)
+        console.log("pagecode prebuild already done", url);
+      return;
+    }
     self.trackPrebuildAsset(url, dest);
     self.emit({
       type:"BundleStyle",
@@ -167,11 +172,12 @@ module.exports.prototype.mountPageStyle = function(app, url, file) {
       }
       if(self.config.log)
         console.log("pagestyle prebuild done", url);
-       self.prebuildAssetDone(url);
+      self.prebuildAssetDone(url);  
     })
+  }
 
   app.get(url, function(req, res){
-    if(self.prebuildAssetsDestMap[url] && self.prebuildAssetsDestMap[url] != "memory") {
+    if(self.prebuildAssetsDestMap[url] && self.prebuildAssetsDestMap[url] != "memory" && !self.config.debug) {
       if(self.sendCachedWhenUptodate(req, res))
         return;
       fs.readFile(self.prebuildAssetsDestMap[url], function(err, data){
@@ -197,6 +203,11 @@ module.exports.prototype.mountPageCode = function(app, url, file) {
     console.log("pagecode GET", url);
   if(this.config.prebuildAssets) {
     var dest = self.config.assetsBuildDir?path.join(self.config.assetsBuildDir,url.split("/").join("-")):"memory";
+    if(dest != "memory" && fs.existsSync(dest)) {
+      if(self.config.log)
+        console.log("pagecode prebuild already done", url);
+      return;
+    }
     self.trackPrebuildAsset(url, dest);
     self.emit({
       type:"BundleCode",
@@ -207,12 +218,16 @@ module.exports.prototype.mountPageCode = function(app, url, file) {
       }
       if(self.config.log)
         console.log("pagecode prebuild done", url);
-      self.prebuildAssetDone(url);
+      // BundleCode seems doing all stuff in sync variant, 
+      // so the bellow logic should happen giving change to bundle styles as well.
+      setTimeout(function(){
+        self.prebuildAssetDone(url);  
+      }, 100);
     })
   }
 
   app.get(url, function(req, res){
-    if(self.prebuildAssetsDestMap[url] && self.prebuildAssetsDestMap[url] != "memory") {
+    if(self.prebuildAssetsDestMap[url] && self.prebuildAssetsDestMap[url] != "memory" && !self.config.debug) {
       if(self.sendCachedWhenUptodate(req, res))
         return;
       fs.readFile(self.prebuildAssetsDestMap[url], function(err, data){
