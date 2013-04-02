@@ -172,7 +172,9 @@ module.exports.prototype.mountPageStyle = function(app, url, file) {
         }
         if(self.config.log)
           console.log("pagestyle prebuild done", url);
-        self.prebuildAssetDone(url);  
+        setTimeout(function(){
+          self.prebuildAssetDone(url);  
+        }, 10);
       })
     }
   }
@@ -209,6 +211,7 @@ module.exports.prototype.mountPageCode = function(app, url, file) {
         console.log("pagecode prebuild already done", url);
       self.prebuildAssetsDestMap[url] = dest;
     } else {
+      self.trackPrebuildAsset(url, dest);
       self.emit({
         type:"BundleCode",
         code: file
@@ -218,8 +221,6 @@ module.exports.prototype.mountPageCode = function(app, url, file) {
         }
         if(self.config.log)
           console.log("pagecode prebuild done", url);
-        // BundleCode seems doing all stuff in sync variant, 
-        // so the bellow logic should happen giving change to bundle styles as well.
         setTimeout(function(){
           self.prebuildAssetDone(url);  
         }, 10);
