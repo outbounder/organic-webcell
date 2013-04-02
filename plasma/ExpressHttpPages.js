@@ -222,7 +222,7 @@ module.exports.prototype.mountPageCode = function(app, url, file) {
       // so the bellow logic should happen giving change to bundle styles as well.
       setTimeout(function(){
         self.prebuildAssetDone(url);  
-      }, 100);
+      }, 10);
     })
   }
 
