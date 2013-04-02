@@ -160,20 +160,21 @@ module.exports.prototype.mountPageStyle = function(app, url, file) {
     if(dest != "memory" && fs.existsSync(dest)) {
       if(self.config.log)
         console.log("pagecode prebuild already done", url);
-      return;
+      self.prebuildAssetsDestMap[url] = dest;
+    } else {
+      self.trackPrebuildAsset(url, dest);
+      self.emit({
+        type:"BundleStyle",
+        style: file
+      }, function(c){
+        if(self.config.assetsBuildDir) {
+          fs.writeFileSync(dest, c.data);
+        }
+        if(self.config.log)
+          console.log("pagestyle prebuild done", url);
+        self.prebuildAssetDone(url);  
+      })
     }
-    self.trackPrebuildAsset(url, dest);
-    self.emit({
-      type:"BundleStyle",
-      style: file
-    }, function(c){
-      if(self.config.assetsBuildDir) {
-        fs.writeFileSync(dest, c.data);
-      }
-      if(self.config.log)
-        console.log("pagestyle prebuild done", url);
-      self.prebuildAssetDone(url);  
-    })
   }
 
   app.get(url, function(req, res){
@@ -206,24 +207,24 @@ module.exports.prototype.mountPageCode = function(app, url, file) {
     if(dest != "memory" && fs.existsSync(dest)) {
       if(self.config.log)
         console.log("pagecode prebuild already done", url);
-      return;
+      self.prebuildAssetsDestMap[url] = dest;
+    } else {
+      self.emit({
+        type:"BundleCode",
+        code: file
+      }, function(c){
+        if(self.config.assetsBuildDir) {
+          fs.writeFileSync(dest, c.data);
+        }
+        if(self.config.log)
+          console.log("pagecode prebuild done", url);
+        // BundleCode seems doing all stuff in sync variant, 
+        // so the bellow logic should happen giving change to bundle styles as well.
+        setTimeout(function(){
+          self.prebuildAssetDone(url);  
+        }, 10);
+      })
     }
-    self.trackPrebuildAsset(url, dest);
-    self.emit({
-      type:"BundleCode",
-      code: file
-    }, function(c){
-      if(self.config.assetsBuildDir) {
-        fs.writeFileSync(dest, c.data);
-      }
-      if(self.config.log)
-        console.log("pagecode prebuild done", url);
-      // BundleCode seems doing all stuff in sync variant, 
-      // so the bellow logic should happen giving change to bundle styles as well.
-      setTimeout(function(){
-        self.prebuildAssetDone(url);  
-      }, 10);
-    })
   }
 
   app.get(url, function(req, res){
