@@ -15,6 +15,7 @@ module.exports = function(config){
     },
     "GET /config": function(req, res){
       res.send(config);
-    }
+    },
+    "OPTIONS": this.sendTrue
   }
 }

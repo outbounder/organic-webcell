@@ -12,7 +12,7 @@ describe("ExpressHttpActions", function(){
     }
   };
   var mockupApp = {
-    routes: {get:{}, put:{}, post:{}, del: {}, all: {}},
+    routes: {get:{}, put:{}, post:{}, del: {}, all: {}, options:{}},
     get: function(url, action){
       this.routes.get[url] = action;
     },
@@ -27,6 +27,9 @@ describe("ExpressHttpActions", function(){
     },
     all: function(url, action){
       this.routes.all[url] = action;
+    },
+    options: function(url, action) {
+      this.routes.options[url] = action;
     }
   }
 
@@ -51,6 +54,7 @@ describe("ExpressHttpActions", function(){
       expect(mockupApp.routes.get["/inner"]).toBeDefined();
       expect(mockupApp.routes.get["/inner/route"]).toBeDefined();
       expect(mockupApp.routes.get["/:child"]).toBeDefined();
+      expect(mockupApp.routes.options["/"]).toBeDefined();
       next();
     });
     plasma.emit(new Chemical({
@@ -72,6 +76,8 @@ describe("ExpressHttpActions", function(){
     expect(mockRes.lastSend).toBe(false);
     mockupApp.routes.get["/testError"]({}, mockRes);
     expect(mockRes.lastSend.result).toBe(true);
+    mockupApp.routes.options["/"]({}, mockRes);
+    expect(mockRes.lastSend).toBe(true);
     next();
   })
 
