@@ -10,40 +10,40 @@ module.exports = function ExpressHttpServer(plasma, config){
   Organel.call(this, plasma);
 
   var app = this.app = express.createServer();
-  this.responseClients = [];
-  this.count = 0;
+
   this.config = config;
   var self = this;
 
-  this.mountMiddleware();
+  this.mountXware(this.config.middleware);
   this.app.use(this.app.router);
   this.mountHttpRoutes();
+  this.mountXware(this.config.afterware);
   
   this.on("kill", this.close);
 
   config.port = config.port || 1337;
 
   this.server = app.listen(config.port, function(){
-    console.log('HttpServer running at http://127.0.0.1:'+config.port+'/');  
+    if(config.log)
+      console.log('HttpServer running at http://127.0.0.1:'+config.port+'/');  
     self.emit(new Chemical("HttpServer", self));
   });
-  
 }
 
 util.inherits(module.exports, Organel);
 
-module.exports.prototype.mountMiddleware = function(){
-  if(!this.config.middleware) return;
+module.exports.prototype.mountXware = function(definitions){
+  if(!definitions) return;
   
   var self = this;
-  _.each(this.config.middleware, function(middleware){
+  _.each(definitions, function(definition){
     
-    var middlewareSource = middleware.source || middleware;
-    var middlewareConfig = middleware.source?middleware:{};
-    if(middlewareSource.indexOf("/") !== 0)
+    var middlewareSource = definition.source || definition;
+    var middlewareConfig = definition.source?definition:{};
+    if(middlewareSource.indexOf("/") !== 0 || middlewareSource.indexOf(":\\") != 1)
       middlewareSource = process.cwd()+"/"+middlewareSource;
     
-    if(self.config.logMiddleware)
+    if(self.config.log)
       console.log("middleware: ",middlewareSource, JSON.stringify(middlewareConfig).yellow);
     var middlewareFunc = require(middlewareSource)(middlewareConfig, self);
     if(middlewareFunc)
@@ -56,7 +56,7 @@ module.exports.prototype.mountHttpRoutes = function(){
 
   var self = this;
   _.each(this.config.routes, function(chemicalAddons, path){
-    if(self.config.logRoutes)
+    if(self.config.log)
       console.log("route: ",path.green, JSON.stringify(chemicalAddons).yellow);
     self.app.all(path, function(req, res){ self.handleIncomingRequest(chemicalAddons, req, res); });  
   });
@@ -89,6 +89,7 @@ module.exports.prototype.handleIncomingRequest = function(chemicalAddons, req, r
 }
 
 module.exports.prototype.close = function(chemical){
+  if(this.closed) return;
   this.server.close();
   this.closed = true;
   return false;
