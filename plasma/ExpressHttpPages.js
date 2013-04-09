@@ -338,22 +338,12 @@ module.exports.prototype.mountPageAction = function(app, method, url, action, te
   
   if(this.config.log)
     console.log("pageaction", method, url);
-  
-  switch(method) {
-    case "GET":
-      app.get.apply(app, args);
-    break;
-    case "POST":
-      app.post.apply(app, args);
-    break;
-    case "PUT":
-      app.put.apply(app, args);
-    break;
-    case "DELETE":
-      app.del.apply(app, args);
-    break;
-    case "*":
-      app.all.apply(app, args);
-    break;
-  }
+
+  if(method == "*")
+    app.all.apply(app, args);
+  else
+  if(method == "DELETE")
+    app.del.apply(app, args);
+  else
+    app[method.toLowerCase()].apply(app, args);
 };

@@ -96,21 +96,12 @@ module.exports.prototype.mountAction = function(app, method, url, action) {
   
   if(this.config.log)
     console.log("action", method, url);
-  switch(method) {
-    case "GET":
-      app.get.apply(app, args);
-    break;
-    case "POST":
-      app.post.apply(app, args);
-    break;
-    case "PUT":
-      app.put.apply(app, args);
-    break;
-    case "DELETE":
-      app.del.apply(app, args);
-    break;
-    case "*":
-      app.all.apply(app, args);
-    break;
-  }
+  
+  if(method == "*")
+    app.all.apply(app, args);
+  else
+  if(method == "DELETE")
+    app.del.apply(app, args);
+  else
+    app[method.toLowerCase()].apply(app, args);
 };
