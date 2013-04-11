@@ -4,6 +4,7 @@ var Chemical = require("organic").Chemical;
 
 var fs = require("fs");
 var browserify = require('browserify');
+var through = require("browserify/node_modules/through");
 var jade = require('jade');
 
 var jsp = require("uglify-js").parser
@@ -38,32 +39,31 @@ module.exports = function BundleCode(plasma, config){
     }
 
     // combine
-    b = browserify({debug: config.debug});
-
+    b = browserify();
     if(config.plugins) {
-      _.each(config.plugins, function(pluginConfig){
-        pluginConfig = _.clone(pluginConfig);
-        if(pluginConfig.arguments)
-          pluginConfig.arguments = _.clone(pluginConfig.arguments);
-
-        var plugin = require(root+pluginConfig.source);
-        b.use(plugin.apply(plugin, pluginConfig.arguments));
-      });
-    }
-    b.addEntry(target);
-    cache[target] = b.bundle();
-    
-    if(config.uglify) {
-      ast = jsp.parse(cache[target])
-      ast = pro.ast_mangle(ast)
-      ast = pro.ast_squeeze(ast)
-      cache[target] = pro.gen_code(ast)
+      config.plugins.forEach(function(file){
+        var transformer = require(root+file)(through, b);
+        if(typeof transformer == "function")
+          b.transform(transformer);
+      })
     }
 
-    cache[target] = new Buffer(cache[target]);
-    chemical.data = cache[target];
+    b.add(target);
+    b.bundle({debug: config.debug}, function(err, src){
+      cache[target] = src;
 
-    callback(chemical);
+      if(config.uglify) {
+        ast = jsp.parse(cache[target])
+        ast = pro.ast_mangle(ast)
+        ast = pro.ast_squeeze(ast)
+        cache[target] = pro.gen_code(ast)
+      }
+
+      cache[target] = new Buffer(cache[target]);
+      chemical.data = cache[target];
+
+      callback(chemical);
+    });
   });
 }
 
