@@ -244,7 +244,7 @@ module.exports.prototype.mountPageCode = function(app, url, file) {
   });
 }
 
-module.exports.prototype.sendCachedWhenUptodate = function(){
+module.exports.prototype.sendCachedWhenUptodate = function(req, res){
   if(!this.config.debug) {
     var modified = true;
     try {
@@ -279,6 +279,11 @@ module.exports.prototype.emitAndSend = function(chemical, req, res, contentType)
   if(self.sendCachedWhenUptodate(req, res))
     return;
   self.emit(chemical, function(c){
+    if(c instanceof Error) {
+      res.setHeader("content-type", "text/html");
+      res.setHeader("content-length", c.toString().length);
+      return res.send(c.toString(), 500);
+    }
     self.sendAssetWithCacheData(req, res, c.data, contentType);
   });
 }

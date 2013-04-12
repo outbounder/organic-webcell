@@ -39,17 +39,24 @@ module.exports = function BundleCode(plasma, config){
     }
 
     // combine
-    b = browserify();
+    var b = browserify();
+    b.add(target);
+    var pluginArgs = {
+      through: through,
+      bundle: b,
+      stream: null
+    };
     if(config.plugins) {
-      config.plugins.forEach(function(file){
-        var transformer = require(root+file)(through, b);
-        if(typeof transformer == "function")
-          b.transform(transformer);
+      config.plugins.forEach(function(pluginDna){
+        var file = pluginDna.source;
+        if(typeof pluginDna == "string")
+          file = pluginDna;
+        require(root+file)(pluginArgs, pluginDna);
       })
     }
+    pluginArgs.stream = b.bundle(config, function(err, src){
+      if(err) return callback(err);
 
-    b.add(target);
-    b.bundle({debug: config.debug}, function(err, src){
       cache[target] = src;
 
       if(config.uglify) {
@@ -58,7 +65,6 @@ module.exports = function BundleCode(plasma, config){
         ast = pro.ast_squeeze(ast)
         cache[target] = pro.gen_code(ast)
       }
-
       cache[target] = new Buffer(cache[target]);
       chemical.data = cache[target];
 
