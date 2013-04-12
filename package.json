@@ -1,6 +1,6 @@
 {
   "name": "organic-webcell",
-  "version": "0.2.9",
+  "version": "0.2.10",
   "main": "WebCell.js",
   "scripts": {
     "test": "jasmine-node ./tests/"
