@@ -5,6 +5,12 @@ var Chemical = require("organic").Chemical;
 var io = require('socket.io');
 var _ = require("underscore");
 
+/* outgoing | WebSocketServer
+
+* data - WebSocketServer instance
+
+*/
+
 module.exports = function WebSocketServer(plasma, config){
   Organel.call(this, plasma);
 

@@ -2,6 +2,12 @@ var util = require("util");
 var Organel = require("organic").Organel;
 var Chemical = require("organic").Chemical;
 
+/* incoming | Error
+
+* page - String
+
+*/
+
 module.exports = function ErrorHandler(plasma){
   Organel.call(this, plasma);
 

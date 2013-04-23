@@ -7,6 +7,12 @@ var Actions = require("../lib/Actions");
 var Context = require("../lib/Context");
 var DirectoryTree = require("../lib/DirectoryTree");
 
+/* incoming | WebSocketServer
+
+* data - WebSocketServer instance
+
+*/
+
 module.exports = function SocketIOActions(plasma, config){
   Organel.call(this, plasma);
 

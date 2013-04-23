@@ -5,6 +5,12 @@ var jade = require("jade");
 var fs = require("fs");
 var _ = require("underscore");
 
+/* incoming | RenderPage
+
+* page - String
+
+*/
+
 module.exports = function RenderPage(plasma, config){
   Organel.call(this, plasma);
   var self = this;

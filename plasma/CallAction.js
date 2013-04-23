@@ -3,6 +3,12 @@ var Organel = require("organic").Organel;
 var Chemical = require("organic").Chemical;
 var _ = require("underscore");
 
+/* incoming | CallAction
+
+* action - Array or String
+
+*/
+
 module.exports = function CallAction(plasma, config){
   Organel.call(this, plasma);
 

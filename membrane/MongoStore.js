@@ -4,6 +4,14 @@ var Chemical = require("organic").Chemical;
 
 var mongojs = require('mongojs');
 
+/* incoming | MongoStore
+
+* method - String
+* data - Object
+* options - Object
+
+*/
+
 module.exports = function MongoStore(plasma, config){
   Organel.call(this, plasma);
 

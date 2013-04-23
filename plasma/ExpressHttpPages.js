@@ -10,6 +10,22 @@ var Actions = require("../lib/Actions");
 var Context = require("../lib/Context");
 var DirectoryTree = require("../lib/DirectoryTree");
 
+/* incoming | HttpServer
+
+* data - ExpressHttpServer instance
+
+*/
+
+
+/* outgoing | BundleCode
+*/
+
+/* outgoing | BundleStyle
+*/
+
+/* outgoing | RenderPage
+*/
+
 module.exports = function ExpressHttpPages(plasma, config){
   Organel.call(this, plasma);
 

@@ -1,6 +1,14 @@
 var util = require("util");
 var Organel = require("organic").Organel;
 
+/* incoming | HttpServer
+
+* data - ExpressHttpServer instance
+
+*/
+
+/* incoming | Logger */
+
 module.exports = function Logger(plasma, config){
   Organel.call(this, plasma);
 

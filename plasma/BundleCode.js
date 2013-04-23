@@ -13,6 +13,12 @@ var pro = require("uglify-js").uglify
 var _ = require("underscore");
 var path = require("path");
 
+/* incoming | BundleCode
+
+* code - String
+
+*/
+
 module.exports = function BundleCode(plasma, config){
   Organel.call(this, plasma);
 
