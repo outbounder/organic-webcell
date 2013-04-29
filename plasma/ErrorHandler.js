@@ -2,9 +2,15 @@ var util = require("util");
 var Organel = require("organic").Organel;
 var Chemical = require("organic").Chemical;
 
+/* organel | 
+
+Any Chemical which is instanceof == "Error" emitted to the plasma will be printed once the Organelle is created.
+
+*/
+
 /* incoming | Error
 
-* page - String
+Any Chemical which is instanceof == "Error" emitted to the plasma will be printed once the Organelle is created.
 
 */
 
