@@ -4,6 +4,34 @@ var path = require("path");
 var less = require("less");
 var fs = require("fs");
 
+/* organel | 
+
+* `cwd` - Object
+
+  *optional* object containing key:values, where values will be prefixed with `process.cwd()` and placed within config itself with coresponding keys
+
+  Useful to provide `root` value relative to current working directory
+
+* `root` - String
+* `less` - Object, Less Options
+
+  configuration options for Less compiler, possible values:
+
+    * paths - Array of paths, by default the root folder of `style` is injected first
+    * optimization - 1
+    * rootpath 
+    * relativeUrls - false
+    * strictImports - false
+    * dumpLineNumbers - false
+    * compress - false
+    * yuicompress - false
+    * output - String undefined, fullpath to where the compiled bundle should be written
+
+* `styleType` - String, autodetected from extension
+* `style` - String 
+
+*/
+
 /* incoming | BundleStyle
 
 * `style` - String
@@ -42,30 +70,6 @@ var fs = require("fs");
 ## Response Chemical Structure ##
 
   * data - `true` when bundle should be written to file or compiled bundle contents
-
-*/
-
-
-
-/* organel | 
-
-* `root` - String
-* `less` - Object, Less Options
-
-  configuration options for Less compiler, possible values:
-
-    * paths - Array of paths, by default the root folder of `style` is injected first
-    * optimization - 1
-    * rootpath 
-    * relativeUrls - false
-    * strictImports - false
-    * dumpLineNumbers - false
-    * compress - false
-    * yuicompress - false
-    * output - String undefined, fullpath to where the compiled bundle should be written
-
-* `styleType` - String, autodetected from extension
-* `style` - String 
 
 */
 module.exports = function BundleStyle(plasma, config){

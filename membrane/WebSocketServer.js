@@ -49,7 +49,8 @@ It is using socket.io under-the-hood as transports provider.
 
         module.exports = function(`websocketServer`, `config`){
          var io = websocketServer.server; // socket.io
-        }*/
+        }
+*/
 
 module.exports = function WebSocketServer(plasma, config){
   Organel.call(this, plasma);
