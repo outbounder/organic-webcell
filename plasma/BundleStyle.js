@@ -4,43 +4,6 @@ var path = require("path");
 var less = require("less");
 var fs = require("fs");
 
-
-
-/* organel | 
-
-* `root` - String
-* `less` - Object, Less Options
-
-  configuration options for Less compiler, possible values:
-
-    * paths - Array of paths, by default the root folder of `style` is injected first
-    * optimization - 1
-    * rootpath 
-    * relativeUrls - false
-    * strictImports - false
-    * dumpLineNumbers - false
-    * compress - false
-    * yuicompress - false
-    * output - String undefined, fullpath to where the compiled bundle should be written
-
-* `styleType` - String, autodetected from extension
-* `style` - String 
-
-*/
-module.exports = function BundleStyle(plasma, config){
-
-    var self = this;
-
-    Organel.call(this, plasma);
-    var cache = {};
-    if(config.useCache)
-        console.log("using style caching");
-
-    if(config.cwd)
-      for(var key in config.cwd)
-        config[key] = process.cwd()+config.cwd[key];
-    this.config = config;
-
 /* incoming | BundleStyle
 
 * `style` - String
@@ -82,16 +45,42 @@ module.exports = function BundleStyle(plasma, config){
 
 */
 
-/* outgoing | Bla 
-
-* key - value
-* key2 - defaultValue
 
 
-### hmmm ###
+/* organel | 
+
+* `root` - String
+* `less` - Object, Less Options
+
+  configuration options for Less compiler, possible values:
+
+    * paths - Array of paths, by default the root folder of `style` is injected first
+    * optimization - 1
+    * rootpath 
+    * relativeUrls - false
+    * strictImports - false
+    * dumpLineNumbers - false
+    * compress - false
+    * yuicompress - false
+    * output - String undefined, fullpath to where the compiled bundle should be written
+
+* `styleType` - String, autodetected from extension
+* `style` - String 
 
 */
+module.exports = function BundleStyle(plasma, config){
 
+    var self = this;
+
+    Organel.call(this, plasma);
+    var cache = {};
+    if(config.useCache)
+        console.log("using style caching");
+
+    if(config.cwd)
+      for(var key in config.cwd)
+        config[key] = process.cwd()+config.cwd[key];
+    this.config = config;
     this.on("BundleStyle", function(chemical, sender, callback) {
         
         var target = (chemical.root || config.root || "")+(chemical.style || config.style);

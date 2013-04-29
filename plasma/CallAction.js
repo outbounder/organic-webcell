@@ -3,11 +3,9 @@ var Organel = require("organic").Organel;
 var Chemical = require("organic").Chemical;
 var _ = require("underscore");
 
-/* incoming | CallAction
+/* organel | 
 
-* action - Array or String
-
-*/
+** organelle is pending removal. reason: not used in production ***/
 
 module.exports = function CallAction(plasma, config){
   Organel.call(this, plasma);

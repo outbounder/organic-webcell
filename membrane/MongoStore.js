@@ -4,13 +4,9 @@ var Chemical = require("organic").Chemical;
 
 var mongojs = require('mongojs');
 
-/* incoming | MongoStore
+/* organel | 
 
-* method - String
-* data - Object
-* options - Object
-
-*/
+** organelle is pending removal. reason: not used in production ***/
 
 module.exports = function MongoStore(plasma, config){
   Organel.call(this, plasma);
