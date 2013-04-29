@@ -91,6 +91,8 @@ module.exports = function BundleCode(plasma, config){
   if(config.cwd)
     for(var key in config.cwd)
       config[key] = process.cwd()+config.cwd[key];
+
+  var pluginsRoot = config.root || process.cwd();
   this.config = config;
 
   this.on("BundleCode", function(chemical, sender, callback){
@@ -117,7 +119,7 @@ module.exports = function BundleCode(plasma, config){
         var file = pluginDna.source;
         if(typeof pluginDna == "string")
           file = pluginDna;
-        require(path.join(process.cwd(),file))(pluginArgs, pluginDna);
+        require(path.join(pluginsRoot,file))(pluginArgs, pluginDna);
       })
     }
     pluginArgs.stream = b.bundle(config, function(err, src){
