@@ -107,8 +107,7 @@ module.exports = function BundleCode(plasma, config){
     }
 
     // combine
-    var b = browserify();
-    b.add(target);
+    var b = browserify([target]);
     var pluginArgs = {
       through: through,
       bundle: b,
@@ -122,7 +121,7 @@ module.exports = function BundleCode(plasma, config){
         require(path.join(pluginsRoot,file))(pluginArgs, pluginDna);
       })
     }
-    pluginArgs.stream = b.bundle(config, function(err, src){
+    pluginArgs.stream = b.bundle({debug: config.debug}, function(err, src){
       if(err) return callback(err);
 
       cache[target] = src;
