@@ -1,3 +1,5 @@
+## project is depricated, use only for educational purposes. all usable organelles are extracted as standalone modules 
+
 organic-webcell
 ===============
 
